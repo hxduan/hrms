@@ -4,6 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "concurrently -k -n API,WEB \"pnpm --dir backend run dev\" \"pnpm --dir frontend run dev\"",
+    "start": "pnpm --dir frontend run build && pnpm --dir backend run start",
+    "seed": "pnpm --dir backend run seed",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
@@ -15,5 +18,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.9.5"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
   }
 }

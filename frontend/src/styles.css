@@ -1,0 +1,110 @@
+:root {
+  font-family: Inter, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.trang-dang-nhap {
+  width: min(100% - 32px, 400px);
+  margin: 8vh auto;
+  padding: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 48px rgb(15 23 42 / 8%);
+}
+
+.trang-dang-nhap h1 {
+  margin: 0 0 8px;
+  font-size: 1.75rem;
+}
+
+.mo-ta-dang-nhap {
+  margin: 0 0 24px;
+  color: #64748b;
+}
+
+.nhom-truong {
+  margin-bottom: 16px;
+}
+
+.nhom-truong label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.nhom-truong input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.nhom-truong input:focus {
+  border-color: #2563eb;
+  outline: 3px solid rgb(37 99 235 / 15%);
+}
+
+.nut-dang-nhap,
+.nut-google {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nut-dang-nhap {
+  width: 100%;
+  border: 0;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+.nut-dang-nhap:hover {
+  background: #1d4ed8;
+}
+
+.loi-dang-nhap {
+  margin: 0 0 16px;
+  color: #b91c1c;
+}
+
+.phan-cach {
+  margin: 18px 0;
+  color: #64748b;
+  text-align: center;
+}
+
+.nut-google {
+  border: 1px solid #cbd5e1;
+  color: #172033;
+}
+
+.nut-google:hover {
+  background: #f8fafc;
+}

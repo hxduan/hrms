@@ -46,9 +46,14 @@
 
    ```bash
    pnpm install
+   pnpm --dir backend install
+   pnpm --dir frontend install
    pnpm run seed     # tạo tài khoản admin/admin
-   pnpm run dev
+   pnpm start        # build frontend và mở http://localhost:3000
    ```
+
+   Khi phát triển, chạy `pnpm run dev` ở thư mục gốc; frontend chạy tại
+   `http://localhost:5173`, backend API tại `http://localhost:3000`.
 
 5. **Kiểm tra bằng Postman**:
    - `GET http://localhost:3000/health` → phải trả `{"status":"ok"}`

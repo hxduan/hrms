@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 
@@ -22,31 +22,40 @@ export default function DangNhap() {
   }
 
   return (
-    <div className="trang-dang-nhap" style={{ maxWidth: 360, margin: '80px auto' }}>
-      <h2>Đăng nhập HRMS</h2>
+    <main className="trang-dang-nhap">
+      <h1>Đăng nhập HRMS</h1>
+      <p className="mo-ta-dang-nhap">Đăng nhập để truy cập hệ thống nhân sự.</p>
       <form onSubmit={handleDangNhap}>
-        <div style={{ marginBottom: 12 }}>
-          <label>Tên đăng nhập</label>
-          <input value={tenDangNhap} onChange={(e) => setTenDangNhap(e.target.value)} style={{ width: '100%' }} />
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <label>Mật khẩu</label>
+        <div className="nhom-truong">
+          <label htmlFor="tenDangNhap">Tên đăng nhập</label>
           <input
-            type="password"
-            value={matKhau}
-            onChange={(e) => setMatKhau(e.target.value)}
-            style={{ width: '100%' }}
+            id="tenDangNhap"
+            name="tenDangNhap"
+            autoComplete="username"
+            required
+            value={tenDangNhap}
+            onChange={(e) => setTenDangNhap(e.target.value)}
           />
         </div>
-        {loi && <p style={{ color: 'red' }}>{loi}</p>}
-        <button type="submit" style={{ width: '100%' }}>
-          Đăng nhập
-        </button>
+        <div className="nhom-truong">
+          <label htmlFor="matKhau">Mật khẩu</label>
+          <input
+            id="matKhau"
+            name="matKhau"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={matKhau}
+            onChange={(e) => setMatKhau(e.target.value)}
+          />
+        </div>
+        {loi && <p className="loi-dang-nhap" role="alert">{loi}</p>}
+        <button className="nut-dang-nhap" type="submit">Đăng nhập</button>
       </form>
-      <div style={{ margin: '16px 0', textAlign: 'center', color: '#888' }}>hoặc</div>
-      <a href="http://localhost:3000/auth/google" style={{ display: 'block', textAlign: 'center' }}>
-        <button style={{ width: '100%' }}>Đăng nhập với Google</button>
+      <div className="phan-cach">hoặc</div>
+      <a className="nut-google" href="http://localhost:3000/auth/google">
+        Đăng nhập với Google
       </a>
-    </div>
+    </main>
   );
 }
