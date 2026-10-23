@@ -9,7 +9,8 @@ const transporter = nodemailer.createTransport({
 });
 
 async function guiEmailKhoiPhucMatKhau(email, maKhoiPhuc) {
-  const link = `${process.env.FRONTEND_URL}/dat-lai-mat-khau?ma=${maKhoiPhuc}`;
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const link = `${frontendUrl}/dat-lai-mat-khau?ma=${maKhoiPhuc}`;
   await transporter.sendMail({
     from: process.env.GMAIL_USER,
     to: email,

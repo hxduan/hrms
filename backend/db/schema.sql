@@ -9,7 +9,8 @@
 
 CREATE TABLE TaiKhoan (
   Id INT IDENTITY PRIMARY KEY,
-  TenDangNhap NVARCHAR(100) UNIQUE NULL,
+  TenDangNhap NVARCHAR(254) NULL,
+  Email NVARCHAR(255) NULL, -- dùng cho khôi phục mật khẩu, phải khớp khi gọi /auth/quen-mat-khau
   MatKhau NVARCHAR(255) NULL,
   VaiTro NVARCHAR(20) NOT NULL DEFAULT 'nhan_vien'
          CHECK (VaiTro IN ('admin','hr','nhan_vien')),
@@ -19,7 +20,6 @@ CREATE TABLE TaiKhoan (
   HanKhoiPhuc DATETIME NULL,
   NhanVienId INT NULL, -- FK thật thêm bằng ALTER ở cuối file, sau khi có bảng NhanVien (phá vòng lặp phụ thuộc)
   NgayTao DATETIME DEFAULT GETDATE(),
-  CONSTRAINT UQ_TaiKhoan_OAuth UNIQUE (NhaCungCapOAuth, MaNguoiDungOAuth)
 );
 
 CREATE TABLE PhongBan (
@@ -129,7 +129,15 @@ CREATE TABLE NhanVien (
 
 -- Phá vòng lặp phụ thuộc TaiKhoan <-> NhanVien: thêm FK ở đây, sau khi cả 2 đã tồn tại
 ALTER TABLE TaiKhoan ADD CONSTRAINT FK_TaiKhoan_NhanVien FOREIGN KEY (NhanVienId) REFERENCES NhanVien(Id);
-ALTER TABLE TaiKhoan ADD CONSTRAINT UQ_TaiKhoan_NhanVien UNIQUE (NhanVienId);
+
+CREATE UNIQUE INDEX UQ_TaiKhoan_NhanVien ON TaiKhoan(NhanVienId)
+  WHERE NhanVienId IS NOT NULL;
+
+CREATE UNIQUE INDEX UQ_TaiKhoan_OAuth ON TaiKhoan(NhaCungCapOAuth, MaNguoiDungOAuth)
+  WHERE NhaCungCapOAuth IS NOT NULL AND MaNguoiDungOAuth IS NOT NULL;
+
+CREATE UNIQUE INDEX UQ_TaiKhoan_TenDangNhap ON TaiKhoan(TenDangNhap)
+  WHERE TenDangNhap IS NOT NULL;
 
 -- ===== NHÓM 4: Phụ thuộc NhanVien =====
 

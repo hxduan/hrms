@@ -5,7 +5,7 @@ describe("POST /auth/login", () => {
   test("trả về 401 khi sai mật khẩu", async () => {
     const res = await request(app)
       .post("/auth/login")
-      .send({ tenDangNhap: "admin", matKhau: "sai-mat-khau-chac-chan-sai" });
+      .send({ tenDangNhap: "admin", matKhau: "admin" });
     expect(res.status).toBe(401);
   });
 

@@ -1,9 +1,14 @@
 const { z } = require('zod');
 
 const DangKySchema = z.object({
-  tenDangNhap: z.string().min(3, 'Tên đăng nhập tối thiểu 3 ký tự').max(100),
+  tenDangNhap: z.string().trim().email('Tên đăng nhập phải là email hợp lệ').max(254)
+    .transform((email) => email.toLowerCase()),
   matKhau: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
   nhanVienId: z.number().int().optional(),
+  hoTen: z.string().trim().min(1).max(200).optional(),
+}).refine((data) => data.nhanVienId !== undefined || data.hoTen, {
+  message: 'Cần có họ tên khi chưa liên kết với nhân viên có sẵn',
+  path: ['hoTen'],
 });
 
 const DangNhapSchema = z.object({
@@ -12,8 +17,7 @@ const DangNhapSchema = z.object({
 });
 
 const QuenMatKhauSchema = z.object({
-  tenDangNhap: z.string().min(1),
-  email: z.string().email('Email không hợp lệ'),
+  email: z.string().trim().email('Email không hợp lệ').transform((email) => email.toLowerCase()),
 });
 
 const DatLaiMatKhauSchema = z.object({

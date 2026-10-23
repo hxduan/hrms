@@ -4,21 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently -k -n API,WEB \"pnpm --dir backend run dev\" \"pnpm --dir frontend run dev\"",
-    "start": "pnpm --dir frontend run build && pnpm --dir backend run start",
-    "seed": "pnpm --dir backend run seed",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "concurrently -k -n API,WEB \"pnpm --filter hrms-backend run dev\" \"pnpm --filter hrms-frontend run dev\"",
+    "start": "pnpm --filter hrms-frontend run build && pnpm --filter hrms-backend run start",
+    "seed": "pnpm --filter hrms-backend run seed",
+    "test": "pnpm --filter hrms-backend test"
   },
   "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "mongoose": "^9.9.5"
-  },
   "devDependencies": {
     "concurrently": "^10.0.6"
   }

@@ -94,6 +94,21 @@ input {
   color: #b91c1c;
 }
 
+.thong-bao {
+  margin: 0 0 16px;
+  color: #166534;
+}
+
+.lien-ket-dang-nhap {
+  margin: 0 0 16px;
+  text-align: right;
+}
+
+.lien-ket-dang-nhap a,
+.thong-bao a {
+  color: #1d4ed8;
+}
+
 .phan-cach {
   margin: 18px 0;
   color: #64748b;

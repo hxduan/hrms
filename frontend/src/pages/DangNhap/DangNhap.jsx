@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 
 export default function DangNhap() {
@@ -23,15 +23,16 @@ export default function DangNhap() {
 
   return (
     <main className="trang-dang-nhap">
-      <h1>Đăng nhập HRMS</h1>
+      <h1>Đăng nhập</h1>
       <p className="mo-ta-dang-nhap">Đăng nhập để truy cập hệ thống nhân sự.</p>
       <form onSubmit={handleDangNhap}>
         <div className="nhom-truong">
-          <label htmlFor="tenDangNhap">Tên đăng nhập</label>
+          <label htmlFor="tenDangNhap">Email / tên đăng nhập</label>
           <input
             id="tenDangNhap"
             name="tenDangNhap"
             autoComplete="username"
+            placeholder=""
             required
             value={tenDangNhap}
             onChange={(e) => setTenDangNhap(e.target.value)}
@@ -49,11 +50,14 @@ export default function DangNhap() {
             onChange={(e) => setMatKhau(e.target.value)}
           />
         </div>
+        <p className="lien-ket-dang-nhap">
+          <Link to="/quen-mat-khau">Quên mật khẩu?</Link>
+        </p>
         {loi && <p className="loi-dang-nhap" role="alert">{loi}</p>}
         <button className="nut-dang-nhap" type="submit">Đăng nhập</button>
       </form>
       <div className="phan-cach">hoặc</div>
-      <a className="nut-google" href="http://localhost:3000/auth/google">
+      <a className="nut-google" href="/auth/google">
         Đăng nhập với Google
       </a>
     </main>

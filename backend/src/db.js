@@ -12,11 +12,15 @@ const config = {
   },
 };
 
+
 let pool;
+
 async function getPool() {
-  if (!pool) {
-    pool = await sql.connect(config);
+  if (pool && pool.connected) {
+    return pool;
   }
+  // Pool đã bị đóng/ngắt — kết nối lại thay vì trả về pool "chết"
+  pool = await sql.connect(config);
   return pool;
 }
 
