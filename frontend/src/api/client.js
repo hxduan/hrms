@@ -12,8 +12,6 @@ export { GOC_API };
 const KHONG_LAM_MOI = [
   '/auth/login',
   '/auth/lam-moi-token',
-  '/auth/tu-dang-ky',
-  '/auth/quen-mat-khau',
   '/auth/dat-lai-mat-khau',
   '/auth/dang-xuat',
 ];

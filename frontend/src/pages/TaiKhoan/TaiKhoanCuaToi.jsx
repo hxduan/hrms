@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import FormPanel from '../../components/FormPanel';
@@ -22,6 +23,8 @@ const TRUONG_DOI_EMAIL = [
 export default function TaiKhoanCuaToi() {
   const { nguoiDung, luuPhien, taiNguoiDung } = useAuth();
   const toast = useToast();
+  const dieuHuong = useNavigate();
+  const batBuoc = !!nguoiDung.BatDoiMatKhau; // đang dùng mật khẩu tạm do admin/HR cấp
   // Tăng số này để làm mới (xóa trắng) form sau khi lưu thành công
   const [lanMatKhau, setLanMatKhau] = useState(0);
   const [lanEmail, setLanEmail] = useState(0);
@@ -32,6 +35,7 @@ export default function TaiKhoanCuaToi() {
     await luuPhien({ accessToken: r.data.accessToken, refreshToken: r.data.refreshToken });
     toast.thanhCong('Đã đổi mật khẩu. Các thiết bị khác sẽ phải đăng nhập lại.');
     setLanMatKhau((n) => n + 1);
+    if (batBuoc) dieuHuong('/', { replace: true }); // đã đổi xong mật khẩu tạm -> vào hệ thống
   }
 
   async function doiEmail(payload) {
@@ -80,13 +84,20 @@ export default function TaiKhoanCuaToi() {
       {nguoiDung.CoMatKhau ? (
         <div className="hr-luoi-the" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', alignItems: 'start' }}>
           <div className="hr-the hr-the-than">
-            <h3 style={{ marginBottom: 14 }}>Đổi mật khẩu</h3>
-            <FormPanel key={lanMatKhau} cacTruong={TRUONG_DOI_MAT_KHAU} onSubmit={doiMatKhau} nhanNop="Đổi mật khẩu" />
+            <h3 style={{ marginBottom: 14 }}>{batBuoc ? 'Đặt mật khẩu mới của bạn' : 'Đổi mật khẩu'}</h3>
+            <FormPanel
+              key={lanMatKhau}
+              cacTruong={batBuoc ? TRUONG_DOI_MAT_KHAU.map((f) => (f.key === 'matKhauHienTai' ? { ...f, nhan: 'Mật khẩu tạm đã được cấp', goiY: 'Nhập mật khẩu tạm mà bộ phận Nhân sự đưa cho bạn' } : f)) : TRUONG_DOI_MAT_KHAU}
+              onSubmit={doiMatKhau}
+              nhanNop={batBuoc ? 'Lưu mật khẩu mới & vào hệ thống' : 'Đổi mật khẩu'}
+            />
           </div>
-          <div className="hr-the hr-the-than">
-            <h3 style={{ marginBottom: 14 }}>Đổi email</h3>
-            <FormPanel key={lanEmail} cacTruong={TRUONG_DOI_EMAIL} onSubmit={doiEmail} nhanNop="Cập nhật email" />
-          </div>
+          {!batBuoc && (
+            <div className="hr-the hr-the-than">
+              <h3 style={{ marginBottom: 14 }}>Đổi email</h3>
+              <FormPanel key={lanEmail} cacTruong={TRUONG_DOI_EMAIL} onSubmit={doiEmail} nhanNop="Cập nhật email" />
+            </div>
+          )}
         </div>
       ) : (
         <ThongBao loai="thongTin">

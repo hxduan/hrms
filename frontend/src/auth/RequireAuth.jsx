@@ -14,6 +14,11 @@ export default function RequireAuth({ children, vaiTro }) {
   if (dangTai) return <ManHinhTai />;
   if (!nguoiDung) return <Navigate to="/dang-nhap" replace state={{ tu: viTri }} />;
 
+  // Đang dùng mật khẩu TẠM do admin/HR cấp: chỉ được ở trang đổi mật khẩu (backend cũng chặn các API khác)
+  if (nguoiDung.BatDoiMatKhau && viTri.pathname !== '/tai-khoan-cua-toi') {
+    return <Navigate to="/tai-khoan-cua-toi" replace />;
+  }
+
   if (vaiTro && !vaiTro.includes(nguoiDung.VaiTro)) {
     return (
       <div>

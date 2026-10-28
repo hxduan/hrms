@@ -1,4 +1,4 @@
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import api, { GOC_API } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import AuthShell from '../../components/AuthShell';
@@ -13,6 +13,7 @@ const CAC_TRUONG = [
 export default function DangNhap() {
   const { nguoiDung, dangTai, luuPhien } = useAuth();
   const viTri = useLocation();
+  const [query] = useSearchParams();
   const tu = viTri.state?.tu?.pathname ?? '/';
 
   // Đã đăng nhập (hoặc vừa đăng nhập xong) -> vào thẳng trang đích
@@ -29,13 +30,15 @@ export default function DangNhap() {
       tieuDe="Đăng nhập"
       moTa="Hệ thống quản lý nhân sự"
       duoi={
-        <>
-          <Link to="/quen-mat-khau">Quên mật khẩu?</Link>
-          <Link to="/dang-ky">Tạo tài khoản</Link>
-        </>
+        <span className="hr-goi-y">
+          Chưa có tài khoản hoặc quên mật khẩu? Vui lòng liên hệ bộ phận Nhân sự để được cấp / đặt lại.
+        </span>
       }
     >
       {viTri.state?.thongBao && <ThongBao loai="ok">{viTri.state.thongBao}</ThongBao>}
+      {query.get('loi') === 'khoa' && (
+        <ThongBao loai="loi">Tài khoản đã bị khóa. Vui lòng liên hệ bộ phận Nhân sự.</ThongBao>
+      )}
       <FormPanel cacTruong={CAC_TRUONG} onSubmit={dangNhap} nhanNop="Đăng nhập" khoiNop />
       <div className="hr-hoac">hoặc</div>
       <a className="hr-btn hr-btn-khoi" href={`${GOC_API}/auth/google`} style={{ textDecoration: 'none' }}>

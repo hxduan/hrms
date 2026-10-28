@@ -23,6 +23,9 @@ const DUONG = {
   canhBao: 'M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',
   tich: 'M20 6L9 17l-5-5',
   thongTin: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18M12 11v5M12 8h.01',
+  thu: 'M3 5h18v14H3zM3 7l9 6 9-6',
+  khoa: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  moKhoa: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 7.5-1.5',
 };
 
 export default function Icon({ ten, kichCo = 18, ...props }) {

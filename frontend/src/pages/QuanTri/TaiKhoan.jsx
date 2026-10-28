@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import api from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
-import { useToast } from '../../components/Feedback';
+import { useToast, useXacNhan } from '../../components/Feedback';
 import FormModal from '../../components/FormModal';
 import HistoryModal from '../../components/HistoryModal';
 import Icon from '../../components/Icon';
@@ -19,6 +19,7 @@ export default function TaiKhoan() {
   const { nguoiDung, coVaiTro } = useAuth();
   const laAdmin = coVaiTro('admin');
   const toast = useToast();
+  const xacNhan = useXacNhan();
 
   const [tim, setTim] = useState('');
   const timDaTre = useDebounce(tim, 300);
@@ -46,6 +47,12 @@ export default function TaiKhoan() {
           <strong style={{ fontWeight: 600 }}>{d.TenDangNhap ?? 'Tài khoản Google'}</strong>
           {d.Id === nguoiDung.Id && <span className="hr-ma">(bạn)</span>}
           {d.Email && <div className="hr-goi-y">{d.Email}</div>}
+          {(!d.HoatDong || d.BatDoiMatKhau) && (
+            <div style={{ marginTop: 4, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {!d.HoatDong && <HuyHieu loai="do">Đã khóa</HuyHieu>}
+              {!!d.BatDoiMatKhau && <HuyHieu loai="vang">Chờ đổi mật khẩu tạm</HuyHieu>}
+            </div>
+          )}
         </div>
       ),
     },
@@ -71,10 +78,61 @@ export default function TaiKhoan() {
     { key: 'NgayTao', nhan: 'Ngày tạo', an: 'diDong', render: (d) => dinhDangNgay(d.NgayTao) },
   ];
 
+  async function guiLienKet(d) {
+    const dongY = await xacNhan({
+      tieuDe: 'Gửi liên kết đặt lại mật khẩu',
+      noiDung: (
+        <>
+          <p style={{ margin: '0 0 8px' }}>
+            Gửi email chứa liên kết đặt lại mật khẩu (hiệu lực 30 phút) tới <strong>{d.Email ?? '(chưa có email)'}</strong>?
+          </p>
+          <p className="hr-goi-y" style={{ margin: 0 }}>Mật khẩu hiện tại vẫn dùng được cho tới khi người dùng đặt mật khẩu mới.</p>
+        </>
+      ),
+      nutXacNhan: 'Gửi email',
+    });
+    if (!dongY) return;
+    try {
+      const r = await api.post(`/tai-khoan/${d.Id}/gui-lien-ket-dat-lai`);
+      toast.thanhCong(r.data.message);
+    } catch (e) {
+      toast.loi(e.response?.data?.message ?? 'Không gửi được email');
+    }
+  }
+
+  async function doiTrangThai(d, hoatDong) {
+    const dongY = await xacNhan({
+      tieuDe: hoatDong ? 'Mở khóa tài khoản' : 'Khóa tài khoản',
+      noiDung: hoatDong ? (
+        <p style={{ margin: 0 }}>Cho phép <strong>{nhanTaiKhoan(d)}</strong> đăng nhập trở lại?</p>
+      ) : (
+        <>
+          <p style={{ margin: '0 0 8px' }}>
+            Khóa tài khoản <strong>{nhanTaiKhoan(d)}</strong>? Người dùng sẽ bị đăng xuất và không đăng nhập được nữa.
+          </p>
+          <p className="hr-goi-y" style={{ margin: 0 }}>Dữ liệu không bị xóa; có thể mở khóa bất cứ lúc nào.</p>
+        </>
+      ),
+      nutXacNhan: hoatDong ? 'Mở khóa' : 'Khóa tài khoản',
+      nguyHiem: !hoatDong,
+    });
+    if (!dongY) return;
+    try {
+      const r = await api.put(`/tai-khoan/${d.Id}/trang-thai`, { hoatDong });
+      toast.thanhCong(r.data.message);
+      taiLai();
+    } catch (e) {
+      toast.loi(e.response?.data?.message ?? 'Không đổi được trạng thái');
+    }
+  }
+
   const hanhDong = [
     { nhan: 'Gắn / đổi hồ sơ nhân viên', icon: 'nguoi', hien: duocDongVao, onClick: (d) => setModal({ loai: 'ganHoSo', dong: d }) },
     { nhan: 'Đổi vai trò', icon: 'sua', hien: (d) => laAdmin && d.Id !== nguoiDung.Id, onClick: (d) => setModal({ loai: 'vaiTro', dong: d }) },
-    { nhan: 'Đặt lại mật khẩu', icon: 'chia', hien: duocDongVao, onClick: (d) => setModal({ loai: 'matKhau', dong: d }) },
+    { nhan: 'Gửi liên kết đặt lại mật khẩu (email)', icon: 'thu', hien: (d) => duocDongVao(d) && !!d.CoMatKhau && !!d.HoatDong, onClick: guiLienKet },
+    { nhan: 'Đặt mật khẩu tạm', icon: 'chia', hien: (d) => duocDongVao(d) && !!d.CoMatKhau, onClick: (d) => setModal({ loai: 'matKhau', dong: d }) },
+    { nhan: 'Khóa tài khoản', icon: 'khoa', hien: (d) => duocDongVao(d) && d.Id !== nguoiDung.Id && !!d.HoatDong, onClick: (d) => doiTrangThai(d, false) },
+    { nhan: 'Mở khóa tài khoản', icon: 'moKhoa', hien: (d) => duocDongVao(d) && !d.HoatDong, onClick: (d) => doiTrangThai(d, true) },
   ];
 
   const tuyChonNhanVien = (dong) => {
@@ -113,7 +171,7 @@ export default function TaiKhoan() {
           },
         },
         { key: 'email', nhan: 'Email', type: 'email', batBuoc: true, maxLength: 255, goiY: 'Nhận mã khôi phục mật khẩu' },
-        { ...truongMatKhauMoi('Mật khẩu tạm', 'matKhau'), goiY: `${GOI_Y_MAT_KHAU}. Nên yêu cầu người dùng đổi sau lần đăng nhập đầu` },
+        { ...truongMatKhauMoi('Mật khẩu tạm', 'matKhau'), goiY: `${GOI_Y_MAT_KHAU}. Người dùng sẽ bị buộc đổi mật khẩu ở lần đăng nhập đầu tiên` },
         ...(laAdmin
           ? [{ key: 'vaiTro', nhan: 'Vai trò', type: 'select', batBuoc: true, options: TUY_CHON_VAI_TRO, placeholder: '— Chọn vai trò —' }]
           : []),
@@ -192,21 +250,21 @@ export default function TaiKhoan() {
 
     return (
       <FormModal
-        tieuDe={`Đặt lại mật khẩu — ${nhanTaiKhoan(dong)}`}
+        tieuDe={`Đặt mật khẩu tạm — ${nhanTaiKhoan(dong)}`}
         cacTruong={[
           {
             key: 'matKhauMoi',
-            nhan: 'Mật khẩu mới',
+            nhan: 'Mật khẩu tạm',
             type: 'password',
             batBuoc: true,
-            goiY: `${GOI_Y_MAT_KHAU}. Người dùng sẽ bị đăng xuất khỏi mọi thiết bị`,
+            goiY: `${GOI_Y_MAT_KHAU}. Người dùng bị đăng xuất khỏi mọi thiết bị và PHẢI đổi mật khẩu ở lần đăng nhập kế tiếp`,
             kiemTra: (v) => kiemTraMatKhauManh(v),
           },
         ]}
         onDong={dong_}
         onSubmit={async (payload) => {
           await api.put(`/tai-khoan/${dong.Id}/dat-lai-mat-khau`, payload);
-          xong('Đã đặt lại mật khẩu');
+          xong('Đã đặt mật khẩu tạm — hãy đưa mật khẩu này cho người dùng qua kênh an toàn');
         }}
       />
     );

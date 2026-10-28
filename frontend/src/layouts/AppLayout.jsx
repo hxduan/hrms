@@ -14,7 +14,8 @@ export default function AppLayout() {
   const [moMenuNguoiDung, setMoMenuNguoiDung] = useState(false);
   const vungNguoiDung = useRef(null);
 
-  const menu = MENU.filter((m) => m.vaiTro.includes(nguoiDung.VaiTro));
+  const buocDoiMatKhau = !!nguoiDung.BatDoiMatKhau;
+  const menu = buocDoiMatKhau ? [] : MENU.filter((m) => m.vaiTro.includes(nguoiDung.VaiTro));
   const ten = tenHienThi(nguoiDung);
 
   // Chuyển trang thì đóng ngăn kéo (di động) và menu người dùng
@@ -103,7 +104,12 @@ export default function AppLayout() {
           </header>
 
           <main className="hr-trang">
-            {chuaGanHoSo && (
+            {buocDoiMatKhau && (
+              <ThongBao loai="vang">
+                <strong>Bạn đang dùng mật khẩu tạm.</strong> Hãy đổi mật khẩu ở bên dưới để tiếp tục sử dụng hệ thống.
+              </ThongBao>
+            )}
+            {chuaGanHoSo && !buocDoiMatKhau && (
               <ThongBao loai="vang">
                 <strong>Tài khoản của bạn chưa được gắn hồ sơ nhân viên.</strong> Bạn chưa xem được dữ liệu cho tới khi bộ phận
                 nhân sự gắn hồ sơ (Quản trị → Tài khoản). Vui lòng liên hệ HR.

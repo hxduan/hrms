@@ -22,7 +22,7 @@ export default function DatLaiMatKhau() {
     <AuthShell tieuDe="Đặt lại mật khẩu" duoi={<Link to="/dang-nhap">← Quay lại đăng nhập</Link>}>
       {!ma ? (
         <ThongBao loai="loi">
-          Liên kết không hợp lệ. Hãy <Link to="/quen-mat-khau">yêu cầu liên kết mới</Link>.
+          Liên kết không hợp lệ hoặc đã hết hạn. Vui lòng liên hệ bộ phận Nhân sự để nhận liên kết mới.
         </ThongBao>
       ) : (
         <FormPanel cacTruong={CAC_TRUONG} onSubmit={datLai} nhanNop="Đặt lại mật khẩu" khoiNop />

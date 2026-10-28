@@ -3,11 +3,9 @@ import { AuthProvider } from './auth/AuthContext';
 import RequireAuth from './auth/RequireAuth';
 import { FeedbackProvider } from './components/Feedback';
 import AppLayout from './layouts/AppLayout';
-import DangKy from './pages/DangNhap/DangKy';
 import DangNhap from './pages/DangNhap/DangNhap';
 import DatLaiMatKhau from './pages/DangNhap/DatLaiMatKhau';
 import OAuthCallback from './pages/DangNhap/OAuthCallback';
-import QuenMatKhau from './pages/DangNhap/QuenMatKhau';
 import QuanTriLayout from './pages/QuanTri/QuanTriLayout';
 import QuanTriTaiKhoan from './pages/QuanTri/TaiKhoan';
 import SapCo, { KhongTimThay } from './pages/SapCo';
@@ -27,10 +25,9 @@ export default function App() {
       <AuthProvider>
         <FeedbackProvider>
           <Routes>
-            {/* Công khai */}
+            {/* Công khai — chỉ còn: đăng nhập, đặt lại mật khẩu bằng liên kết email, callback Google.
+                KHÔNG còn tự đăng ký / quên mật khẩu: tài khoản do admin/HR cấp. */}
             <Route path="/dang-nhap" element={<DangNhap />} />
-            <Route path="/dang-ky" element={<DangKy />} />
-            <Route path="/quen-mat-khau" element={<QuenMatKhau />} />
             <Route path="/dat-lai-mat-khau" element={<DatLaiMatKhau />} />
             <Route path="/oauth-callback" element={<OAuthCallback />} />
 
