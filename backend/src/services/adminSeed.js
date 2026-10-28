@@ -4,9 +4,9 @@ async function damBaoTaiKhoanAdmin(pool) {
   const existing = await pool
     .request()
     .input("u", "admin")
-    .query("SELECT Id, MatKhau, Email FROM TaiKhoan WHERE TenDangNhap = @u");
+    .query("SELECT Id, MatKhauMaHoa, Email FROM TaiKhoan WHERE TenDangNhap = @u");
 
-  if (existing.recordset[0]?.MatKhau) {
+  if (existing.recordset[0]?.MatKhauMaHoa) {
     if (!existing.recordset[0].Email && process.env.ADMIN_EMAIL) {
       await pool
         .request()
@@ -26,7 +26,7 @@ async function damBaoTaiKhoanAdmin(pool) {
       .input("hash", hash)
       .input("email", email)
       .query(
-        "UPDATE TaiKhoan SET MatKhau = @hash, Email = COALESCE(Email, @email) WHERE Id = @id",
+        "UPDATE TaiKhoan SET MatKhauMaHoa = @hash, Email = COALESCE(Email, @email) WHERE Id = @id",
       );
   } else {
     await pool
@@ -34,7 +34,7 @@ async function damBaoTaiKhoanAdmin(pool) {
       .input("hash", hash)
       .input("email", email)
       .query(
-        `INSERT INTO TaiKhoan (TenDangNhap, Email, MatKhau, VaiTro)
+        `INSERT INTO TaiKhoan (TenDangNhap, Email, MatKhauMaHoa, VaiTro)
          VALUES ('admin', @email, @hash, 'admin')`,
       );
   }

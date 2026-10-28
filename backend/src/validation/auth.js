@@ -16,13 +16,4 @@ const DangNhapSchema = z.object({
   matKhau: z.string().min(1, 'Bắt buộc nhập mật khẩu'),
 });
 
-const QuenMatKhauSchema = z.object({
-  email: z.string().trim().email('Email không hợp lệ').transform((email) => email.toLowerCase()),
-});
-
-const DatLaiMatKhauSchema = z.object({
-  ma: z.string().min(1),
-  matKhauMoi: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
-});
-
-module.exports = { DangKySchema, DangNhapSchema, QuenMatKhauSchema, DatLaiMatKhauSchema };
+module.exports = { DangKySchema, DangNhapSchema };

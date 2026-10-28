@@ -8,17 +8,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function guiEmailKhoiPhucMatKhau(email, maKhoiPhuc) {
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const link = `${frontendUrl}/dat-lai-mat-khau?ma=${maKhoiPhuc}`;
-  await transporter.sendMail({
-    from: process.env.GMAIL_USER,
-    to: email,
-    subject: '[HRMS] Khôi phục mật khẩu',
-    text: `Nhấn vào link sau để đặt lại mật khẩu (hết hạn sau 30 phút): ${link}`,
-  });
-}
-
 async function guiEmailDuyetDon(emailNhanVien, loaiDon, trangThai) {
   await transporter.sendMail({
     from: process.env.GMAIL_USER,
@@ -28,4 +17,13 @@ async function guiEmailDuyetDon(emailNhanVien, loaiDon, trangThai) {
   });
 }
 
-module.exports = { guiEmailKhoiPhucMatKhau, guiEmailDuyetDon };
+async function guiEmailKhoiPhucMatKhau(email, ma) {
+  await transporter.sendMail({
+    from: process.env.GMAIL_USER,
+    to: email,
+    subject: '[HRMS] Khôi phục mật khẩu',
+    text: `Mã khôi phục mật khẩu của bạn là: ${ma}\nMã có hiệu lực trong 30 phút.`,
+  });
+}
+
+module.exports = { guiEmailDuyetDon, guiEmailKhoiPhucMatKhau };

@@ -1,46 +1,73 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './auth/AuthContext';
+import RequireAuth from './auth/RequireAuth';
+import { FeedbackProvider } from './components/Feedback';
+import AppLayout from './layouts/AppLayout';
+import DangKy from './pages/DangNhap/DangKy';
 import DangNhap from './pages/DangNhap/DangNhap';
-import QuenMatKhau from './pages/DangNhap/QuenMatKhau';
 import DatLaiMatKhau from './pages/DangNhap/DatLaiMatKhau';
 import OAuthCallback from './pages/DangNhap/OAuthCallback';
-import AppLayout from './layouts/AppLayout';
+import QuenMatKhau from './pages/DangNhap/QuenMatKhau';
+import QuanTriLayout from './pages/QuanTri/QuanTriLayout';
+import QuanTriTaiKhoan from './pages/QuanTri/TaiKhoan';
+import SapCo, { KhongTimThay } from './pages/SapCo';
+import TaiKhoanCuaToi from './pages/TaiKhoan/TaiKhoanCuaToi';
+import ChucDanh from './pages/ToChuc/ChucDanh';
+import ChucVu from './pages/ToChuc/ChucVu';
+import DinhBien from './pages/ToChuc/DinhBien';
+import PhongBan from './pages/ToChuc/PhongBan';
+import ToChucLayout from './pages/ToChuc/ToChucLayout';
+import TrangChu from './pages/TrangChu';
 
-function CanDangNhap({ children }) {
-  const daDangNhap = !!localStorage.getItem('accessToken');
-  return daDangNhap ? children : <Navigate to="/dang-nhap" />;
-}
-
-/** Trang giữ chỗ cho các module chưa được xây dựng (Giai đoạn 2 trở đi) */
-function ChuaXayDung({ tenTrang }) {
-  return <p>Trang {tenTrang} sẽ được xây dựng ở giai đoạn sau.</p>;
-}
+const QUAN_LY = ['admin', 'hr'];
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/dang-nhap" element={<DangNhap />} />
-        <Route path="/quen-mat-khau" element={<QuenMatKhau />} />
-        <Route path="/dat-lai-mat-khau" element={<DatLaiMatKhau />} />
-        <Route path="/oauth-callback" element={<OAuthCallback />} />
-        <Route
-          path="/"
-          element={
-            <CanDangNhap>
-              <AppLayout />
-            </CanDangNhap>
-          }
-        >
-          <Route index element={<p>Đăng nhập thành công — nội dung các trang sẽ thêm ở Giai đoạn 2 trở đi.</p>} />
-          {/* Route giữ chỗ — tránh bấm menu là ra trang trắng */}
-          <Route path="to-chuc" element={<ChuaXayDung tenTrang="Tổ chức" />} />
-          <Route path="nhan-su" element={<ChuaXayDung tenTrang="Nhân sự" />} />
-          <Route path="cong-luong" element={<ChuaXayDung tenTrang="Công-Lương" />} />
-          <Route path="quan-tri" element={<ChuaXayDung tenTrang="Quản trị" />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <FeedbackProvider>
+          <Routes>
+            {/* Công khai */}
+            <Route path="/dang-nhap" element={<DangNhap />} />
+            <Route path="/dang-ky" element={<DangKy />} />
+            <Route path="/quen-mat-khau" element={<QuenMatKhau />} />
+            <Route path="/dat-lai-mat-khau" element={<DatLaiMatKhau />} />
+            <Route path="/oauth-callback" element={<OAuthCallback />} />
+
+            {/* Cần đăng nhập — AppLayout dựng menu theo vai trò */}
+            <Route
+              path="/"
+              element={
+                <RequireAuth>
+                  <AppLayout />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<TrangChu />} />
+
+              <Route path="to-chuc" element={<ToChucLayout />}>
+                <Route index element={<Navigate to="phong-ban" replace />} />
+                <Route path="phong-ban" element={<PhongBan />} />
+                <Route path="chuc-vu" element={<ChucVu />} />
+                <Route path="chuc-danh" element={<ChucDanh />} />
+                <Route path="dinh-bien" element={<DinhBien />} />
+              </Route>
+
+              <Route path="nhan-su/*" element={<RequireAuth vaiTro={QUAN_LY}><SapCo ten="Nhân sự" giaiDoan="3 và 4" /></RequireAuth>} />
+              <Route path="ho-so-cua-toi" element={<RequireAuth vaiTro={['nhan_vien']}><SapCo ten="Hồ sơ của tôi" giaiDoan="3 và 4" /></RequireAuth>} />
+              <Route path="cong-luong/*" element={<SapCo ten="Công - Lương" giaiDoan="5 đến 9" />} />
+
+              <Route path="quan-tri" element={<RequireAuth vaiTro={QUAN_LY}><QuanTriLayout /></RequireAuth>}>
+                <Route index element={<Navigate to="tai-khoan" replace />} />
+                <Route path="tai-khoan" element={<QuanTriTaiKhoan />} />
+              </Route>
+
+              <Route path="tai-khoan-cua-toi" element={<TaiKhoanCuaToi />} />
+              <Route path="*" element={<KhongTimThay />} />
+            </Route>
+          </Routes>
+        </FeedbackProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

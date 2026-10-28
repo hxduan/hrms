@@ -1,16 +1,19 @@
-# HRMS Backend — Giai đoạn 1: Nền tảng (Auth + Hạ tầng)
+# HRMS Backend — Giai đoạn 1 + 2
 
-## Đã có trong giai đoạn này
+## Đã tích hợp
 
 - Kết nối SQL Server (`src/db.js`)
 - Schema CSDL đầy đủ, đúng thứ tự phụ thuộc (`db/schema.sql`)
 - Đăng nhập tài khoản thường (bcrypt) + Google OAuth (Passport)
-- Refresh token, Quên mật khẩu (gửi email qua Gmail)
+- Refresh token
 - Middleware dùng chung: xác thực JWT, phân quyền, validate (Zod), xử lý lỗi
   tập trung, rate limit chống dò mật khẩu
 - Nhật ký thay đổi (`src/services/nhatKy.js`) — sẵn sàng cho các Giai đoạn sau
 - Ghi log (Winston + Morgan)
 - Test tự động (Jest + Supertest) + CI (GitHub Actions, chỉ chạy test)
+- Giai đoạn 2: tự đăng ký, quên/đặt lại mật khẩu, đổi email/mật khẩu, quản trị
+  tài khoản và phân quyền theo vai trò
+- Module Tổ chức: phòng ban, chức vụ, chức danh, định biên và nhật ký thay đổi
 
 ## Các bước chạy thử (thực hiện trên máy bạn)
 
@@ -33,7 +36,7 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    docker compose --env-file backend/.env up -d sql-server
    ```
 
-2. **Tạo database và chạy schema**:
+2. **Tạo database, chạy schema và migration giai đoạn 2**:
 
    ```sql
    CREATE DATABASE nhan_su;
@@ -43,6 +46,11 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    `nhan_su`). Sau đó chạy toàn bộ nội dung `backend/db/schema.sql` trên
    database đó (dùng Azure Data Studio / SSMS / `sqlcmd`). Vì file đã đúng
    thứ tự cha-con, chạy 1 lần từ đầu đến cuối sẽ không lỗi FK.
+
+   Tiếp theo chạy `backend/db/migrations/002_giai_doan_2.sql` trên cùng
+   database. Migration bổ sung các cột, chỉ mục và stored procedure cần thiết;
+   nếu database giai đoạn 1 đang dùng cột `TaiKhoan.MatKhau`, migration sẽ
+   chuyển hash hiện có sang `MatKhauMaHoa` mà không đổi mật khẩu.
 
    Nếu database đã được tạo theo schema cũ với `TenDangNhap NVARCHAR(100)`,
    mở rộng cột trước khi dùng email làm tên đăng nhập:
@@ -58,21 +66,23 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    từ Google Cloud Console (Authorized redirect URI:
    `http://localhost:3000/auth/google/callback`). `GMAIL_APP_PASSWORD` lấy
    từ myaccount.google.com/apppasswords.
+   Khi chạy frontend bằng Vite, `FRONTEND_URL` mặc định là
+   `http://localhost:5173`; nếu dùng địa chỉ khác, hãy đặt biến này trong
+   `backend/.env` đúng với địa chỉ frontend.
 
-4. **Cài đặt & khởi tạo dữ liệu mẫu**:
+3. **Cài đặt & khởi tạo dữ liệu mẫu**:
 
    ```bash
    pnpm install
    pnpm --dir backend install
    pnpm --dir frontend install --frozen-lockfile
+   pnpm run seed     # tạo dữ liệu mẫu cho Tổ chức, HR và nhân viên
    pnpm start        # tự tạo tài khoản admin/admin ở môi trường không phải production
    ```
 
    Khi backend khởi động trong môi trường không phải production, nếu chưa có
    tài khoản `admin`, hệ thống tự tạo tài khoản kiểm thử `admin` / `admin`.
    Nếu đã có tài khoản admin thì mật khẩu hiện tại được giữ nguyên.
-   Có thể đặt `ADMIN_EMAIL` trong `backend/.env` để tài khoản kiểm thử cũng
-   nhận được email khôi phục mật khẩu.
    **Không dùng tài khoản mặc định này trong production**; đặt
    `NODE_ENV=production` trước khi chạy. Có thể chủ động khởi tạo admin bằng
    `pnpm run seed`.
@@ -82,48 +92,23 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    `pnpm --dir frontend install --frozen-lockfile`, sau đó chạy lại `pnpm start`.
 
    Khi phát triển, chạy `pnpm run dev` ở thư mục gốc; frontend chạy tại
-   `http://localhost:5173`, backend API tại `http://localhost:3000`.
+   `http://localhost:5173`, backend API tại `http://localhost:3000`. CORS và
+   proxy Vite đã cấu hình cho các API của Giai đoạn 2.
 
-5. **Kiểm tra bằng Postman**:
+4. **Kiểm tra bằng Postman**:
    - `GET http://localhost:3000/health` → phải trả `{"status":"ok"}`
    - `POST http://localhost:3000/auth/login` body
      `{"tenDangNhap":"admin","matKhau":"admin"}` → phải trả về
      `accessToken` + `refreshToken`
-   - Mở `/quen-mat-khau`, nhập email tài khoản để nhận liên kết; liên kết mở
-     `/dat-lai-mat-khau` và cho phép đặt mật khẩu mới. Cần cấu hình
-     `GMAIL_USER`, `GMAIL_APP_PASSWORD` và `FRONTEND_URL` trong `backend/.env`.
-   - `POST http://localhost:3000/auth/dang-ky` (admin/HR đã đăng nhập) với
-     body `{"tenDangNhap":"nhanvien@gmail.com","matKhau":"matkhau123","hoTen":"Nguyen Van A"}`
-     → tạo email làm tên đăng nhập, lưu mật khẩu bcrypt và tạo-liên kết
-     `NhanVienId`; có thể truyền `nhanVienId` thay cho `hoTen` để liên kết
-     nhân viên đã tồn tại
+   - `POST http://localhost:3000/auth/tu-dang-ky` tạo tài khoản nhân viên
+     chưa gắn hồ sơ; admin/HR tạo tài khoản qua `POST /tai-khoan`
    - Mở trình duyệt `http://localhost:3000/auth/google` → phải chuyển hướng
      sang màn hình chọn tài khoản Google
 
-6. **Chạy test tự động**:
+5. **Chạy test tự động**:
    ```bash
    pnpm test
    ```
-   Lưu ý: các test đăng nhập trong `tests/auth.test.js` cần database SQL Server
-   và tài khoản `admin`; khởi động backend ở môi trường không phải production
-   hoặc chạy `pnpm run seed` trước.
-
-## Tiêu chí "đạt" để chuyển sang Giai đoạn 2 (Tổ chức)
-
-- [ ] `db/schema.sql` chạy xong không lỗi trên DB rỗng
-- [ ] `pnpm run seed` tạo được tài khoản admin
-- [ ] Backend tự tạo admin/admin khi khởi động ở môi trường không phải production
-- [ ] Đăng nhập thường qua Postman trả về đúng 2 token
-- [ ] Đăng nhập Google chuyển hướng và tạo được `TaiKhoan` mới (kiểm tra
-      trong DB thấy `NhaCungCapOAuth = 'google'` và `MaNguoiDungOAuth` có giá trị)
-- [ ] Sau khi đăng nhập Google, `TaiKhoan.TenDangNhap` và `TaiKhoan.Email`
-      khớp email Google (không còn NULL); đăng nhập lần 2 sau khi đổi tên/
-      email trên Google thì 2 cột này được đồng bộ lại
-- [ ] Đăng ký tài khoản mới dùng email làm `TenDangNhap`, bcrypt mã hóa
-      `MatKhau`, và tự tạo/liên kết `NhanVienId` (hoặc liên kết nhân viên có sẵn)
-- [ ] Đăng nhập Google tạo hồ sơ trong `NhanVien` và liên kết với `TaiKhoan`
-- [ ] `pnpm test` chạy xanh toàn bộ test
-
-**Xác nhận đủ các tiêu chí trên rồi báo lại — tôi mới viết tiếp Giai đoạn 2
-(Tổ chức: PhongBan/ChucVu/ChucDanh/Định biên), theo đúng yêu cầu "kiểm tra
-từng tính năng trước khi tiến về phía trước".**
+   Các bài kiểm tra API cần SQL Server. Bài kiểm tra đăng nhập thành công chỉ
+   chạy khi cấu hình `HRMS_TEST_LOGIN_USERNAME` và `HRMS_TEST_LOGIN_PASSWORD`;
+   các bài kiểm tra validation không cần kết nối database.

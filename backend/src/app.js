@@ -28,8 +28,12 @@ app.use(passport.initialize());
 
 // ---- Routes ----
 app.use('/auth', require('./routes/auth'));
-// Các routes tiếp theo (to-chuc, nhan-su, cong-luong...) thêm dần ở Giai
-// đoạn sau, theo đúng khuôn: app.use('/duong-dan', require('./routes/x'));
+app.use('/phong-ban', require('./routes/phongBan'));
+app.use('/chuc-vu', require('./routes/chucVu'));
+app.use('/chuc-danh', require('./routes/chucDanh'));
+app.use('/dinh-bien', require('./routes/dinhBien'));
+app.use('/tai-khoan', require('./routes/taiKhoan'));
+app.use('/nhat-ky-thay-doi', require('./routes/nhatKy'));
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 

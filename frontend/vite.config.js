@@ -1,14 +1,23 @@
 import { defineConfig } from 'vite';
 
-// Proxy /auth và /health sang backend khi dev ở cổng 5173 —
-// nhờ đó frontend gọi API bằng URL tương đối, không hardcode localhost:3000.
+const apiRoutes = [
+  '/auth',
+  '/health',
+  '/phong-ban',
+  '/chuc-vu',
+  '/chuc-danh',
+  '/dinh-bien',
+  '/tai-khoan',
+  '/nhat-ky-thay-doi',
+];
+
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   server: {
     port: 5173,
     strictPort: true,
-    proxy: {
-      '/auth': 'http://localhost:3000',
-      '/health': 'http://localhost:3000',
-    },
+    proxy: Object.fromEntries(apiRoutes.map((route) => [route, 'http://localhost:3000'])),
   },
 });

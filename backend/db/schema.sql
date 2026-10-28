@@ -10,16 +10,16 @@
 CREATE TABLE TaiKhoan (
   Id INT IDENTITY PRIMARY KEY,
   TenDangNhap NVARCHAR(254) NULL,
-  Email NVARCHAR(255) NULL, -- dùng cho khôi phục mật khẩu, phải khớp khi gọi /auth/quen-mat-khau
-  MatKhau NVARCHAR(255) NULL,
+  Email NVARCHAR(255) NULL,
+  MatKhauMaHoa NVARCHAR(255) NULL,
+  MaKhoiPhucMatKhau CHAR(64) NULL,
+  HanKhoiPhuc DATETIME NULL,
   VaiTro NVARCHAR(20) NOT NULL DEFAULT 'nhan_vien'
          CHECK (VaiTro IN ('admin','hr','nhan_vien')),
   NhaCungCapOAuth NVARCHAR(20) NULL CHECK (NhaCungCapOAuth IN ('google') OR NhaCungCapOAuth IS NULL),
   MaNguoiDungOAuth NVARCHAR(255) NULL,
-  MaKhoiPhucMatKhau NVARCHAR(100) NULL,
-  HanKhoiPhuc DATETIME NULL,
   NhanVienId INT NULL, -- FK thật thêm bằng ALTER ở cuối file, sau khi có bảng NhanVien (phá vòng lặp phụ thuộc)
-  NgayTao DATETIME DEFAULT GETDATE(),
+  NgayTao DATETIME DEFAULT GETDATE()
 );
 
 CREATE TABLE PhongBan (

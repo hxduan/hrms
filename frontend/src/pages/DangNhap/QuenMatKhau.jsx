@@ -1,55 +1,42 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api/client';
+import AuthShell from '../../components/AuthShell';
+import FormPanel from '../../components/FormPanel';
+import { ThongBao } from '../../components/ui';
+
+const CAC_TRUONG = [
+  {
+    key: 'dinhDanh',
+    nhan: 'Tên đăng nhập hoặc email',
+    batBuoc: true,
+    maxLength: 255,
+    autoComplete: 'username',
+    goiY: 'Chúng tôi sẽ gửi liên kết đặt lại mật khẩu tới email đã đăng ký cho tài khoản',
+  },
+];
 
 export default function QuenMatKhau() {
-  const [email, setEmail] = useState('');
-  const [thongBao, setThongBao] = useState('');
-  const [loi, setLoi] = useState('');
-  const [dangGui, setDangGui] = useState(false);
+  const [daGui, setDaGui] = useState(null);
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setThongBao('');
-    setLoi('');
-    setDangGui(true);
-    try {
-      const res = await api.post('/auth/quen-mat-khau', { email });
-      setThongBao(res.data.message);
-    } catch (err) {
-      setLoi(err.response?.data?.message ?? 'Không thể gửi yêu cầu. Vui lòng thử lại.');
-    } finally {
-      setDangGui(false);
-    }
+  async function gui(payload) {
+    const r = await api.post('/auth/quen-mat-khau', payload);
+    setDaGui(r.data.message);
   }
 
   return (
-    <main className="trang-dang-nhap">
-      <h1>Quên mật khẩu</h1>
-      <p className="mo-ta-dang-nhap">
-        Nhập email đã đăng ký. Nếu tài khoản tồn tại, chúng tôi sẽ gửi liên kết
-        đặt lại mật khẩu.
-      </p>
-      <form onSubmit={handleSubmit}>
-        <div className="nhom-truong">
-          <label htmlFor="emailKhoiPhuc">Email</label>
-          <input
-            id="emailKhoiPhuc"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-        {loi && <p className="loi-dang-nhap" role="alert">{loi}</p>}
-        {thongBao && <p className="thong-bao" role="status">{thongBao}</p>}
-        <button className="nut-dang-nhap" type="submit" disabled={dangGui}>
-          {dangGui ? 'Đang gửi...' : 'Gửi liên kết khôi phục'}
-        </button>
-      </form>
-      <p className="lien-ket-dang-nhap"><Link to="/dang-nhap">Quay lại đăng nhập</Link></p>
-    </main>
+    <AuthShell tieuDe="Quên mật khẩu" duoi={<Link to="/dang-nhap">← Quay lại đăng nhập</Link>}>
+      {daGui ? (
+        <>
+          <ThongBao loai="ok">{daGui}</ThongBao>
+          <p style={{ color: 'var(--chu-phu)', margin: 0 }}>
+            Liên kết có hiệu lực <b>30 phút</b>. Nếu không thấy email, hãy kiểm tra thư mục Spam. Tài khoản đăng nhập bằng
+            Google không có mật khẩu để khôi phục.
+          </p>
+        </>
+      ) : (
+        <FormPanel cacTruong={CAC_TRUONG} onSubmit={gui} nhanNop="Gửi liên kết khôi phục" khoiNop />
+      )}
+    </AuthShell>
   );
 }
