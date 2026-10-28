@@ -39,6 +39,11 @@ export default function DangNhap() {
       {query.get('loi') === 'khoa' && (
         <ThongBao loai="loi">Tài khoản đã bị khóa. Vui lòng liên hệ bộ phận Nhân sự.</ThongBao>
       )}
+      {query.get('loi') === 'google' && (
+        <ThongBao loai="loi">
+          Không thể đăng nhập bằng Google. Vui lòng thử lại hoặc liên hệ bộ phận Nhân sự.
+        </ThongBao>
+      )}
       <FormPanel cacTruong={CAC_TRUONG} onSubmit={dangNhap} nhanNop="Đăng nhập" khoiNop />
       <div className="hr-hoac">hoặc</div>
       <a className="hr-btn hr-btn-khoi" href={`${GOC_API}/auth/google`} style={{ textDecoration: 'none' }}>

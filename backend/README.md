@@ -69,12 +69,13 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    ```
 
    `backend/.env.example` là mẫu cấu hình. `GOOGLE_CLIENT_ID`/`SECRET` lấy
-   từ Google Cloud Console (Authorized redirect URI:
-   `http://localhost:3000/auth/google/callback`). `GMAIL_APP_PASSWORD` lấy
-   từ myaccount.google.com/apppasswords.
-   Khi chạy frontend bằng Vite, `FRONTEND_URL` mặc định là
-   `http://localhost:5173`; nếu dùng địa chỉ khác, hãy đặt biến này trong
-   `backend/.env` đúng với địa chỉ frontend.
+   từ Google Cloud Console. Đặt Authorized redirect URI trùng với
+   `${BACKEND_URL}/auth/google/callback`; mặc định local là
+   `http://localhost:3000/auth/google/callback`. Khi triển khai ở domain khác,
+   cập nhật `BACKEND_URL` và đăng ký đúng callback URL đó trong Google Cloud.
+   `FRONTEND_URL` mặc định là `http://localhost:5173`; nếu dùng địa chỉ khác,
+   hãy đặt biến này trong `backend/.env` đúng với địa chỉ frontend.
+   `GMAIL_APP_PASSWORD` lấy từ myaccount.google.com/apppasswords.
 
 3. **Cài đặt & khởi tạo dữ liệu mẫu**:
 

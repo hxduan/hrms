@@ -4,6 +4,7 @@ const { sql, getPool } = require('../db');
 const logger = require('../services/logger');
 
 const DAI_TOI_DA_TEN_DANG_NHAP = 254;
+const backendUrl = (process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/+$/, '');
 
 function laLoiTrungUnique(err, tenIndex) {
   if (!err || (err.number !== 2601 && err.number !== 2627)) return false;
@@ -239,7 +240,7 @@ if (daCauHinhGoogle) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: '/auth/google/callback',
+        callbackURL: `${backendUrl}/auth/google/callback`,
       },
       async (accessToken, refreshToken, profile, done) => {
         try {

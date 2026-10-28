@@ -13,6 +13,7 @@ const { DangNhapSchema } = require('../validation/auth'); // giữ nguyên schem
 const { DoiMatKhauSchema, DoiEmailSchema, DatLaiMatKhauSchema } = require('../validation/taiKhoan');
 
 const router = express.Router();
+const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/+$/, '');
 
 // ---------------------------------------------------------------------------
 // Tiện ích
@@ -277,16 +278,19 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 router.get(
   '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/dang-nhap` }),
+  passport.authenticate('google', {
+    session: false,
+    failureRedirect: `${frontendUrl}/dang-nhap?loi=google`,
+  }),
   async (req, res) => {
     if (req.user.HoatDong === false || req.user.HoatDong === 0) {
-      return res.redirect(`${process.env.FRONTEND_URL}/dang-nhap?loi=khoa`);
+      return res.redirect(`${frontendUrl}/dang-nhap?loi=khoa`);
     }
     const pool = await getPool();
     const accessToken = taoAccessToken(req.user);
     const refreshToken = await taoVaLuuRefreshToken(pool, req.user.Id);
     res.redirect(
-      `${process.env.FRONTEND_URL}/oauth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
+      `${frontendUrl}/oauth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
     );
   }
 );
