@@ -1,14 +1,19 @@
 const request = require("supertest");
 const app = require("../src/app");
 
-describe("API khôi phục mật khẩu", () => {
-  test.each(["/auth/quen-mat-khau", "/auth/dat-lai-mat-khau"])(
-    "từ chối dữ liệu không hợp lệ cho POST %s",
+describe("Các luồng xác thực công khai", () => {
+  test.each(["/auth/tu-dang-ky", "/auth/quen-mat-khau"])(
+    "đã gỡ POST %s",
     async (endpoint) => {
       const res = await request(app).post(endpoint).send({});
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(404);
     },
   );
+
+  test("từ chối mã khôi phục không hợp lệ", async () => {
+    const res = await request(app).post("/auth/dat-lai-mat-khau").send({});
+    expect(res.status).toBe(400);
+  });
 });
 
 describe("POST /auth/login", () => {

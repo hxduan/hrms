@@ -26,8 +26,6 @@ const matKhauMoi = z
 
 const vaiTro = z.enum(['admin', 'hr', 'nhan_vien'], { errorMap: () => ({ message: 'Vai trò không hợp lệ' }) });
 
-const TuDangKySchema = z.object({ tenDangNhap, email, matKhau: matKhauMoi });
-
 const TaoTaiKhoanSchema = z.object({
   tenDangNhap,
   email,
@@ -51,10 +49,6 @@ const DoiEmailSchema = z.object({
   matKhauHienTai: z.string().min(1, 'Bắt buộc nhập mật khẩu hiện tại'),
 });
 
-const QuenMatKhauSchema = z.object({
-  dinhDanh: z.string({ required_error: 'Bắt buộc nhập tên đăng nhập hoặc email' }).trim().min(1, 'Bắt buộc nhập tên đăng nhập hoặc email').max(255),
-});
-
 const DatLaiMatKhauSchema = z.object({
   ma: z.string().min(1, 'Thiếu mã khôi phục'),
   matKhauMoi,
@@ -63,15 +57,17 @@ const DatLaiMatKhauSchema = z.object({
 const DoiVaiTroSchema = z.object({ vaiTro });
 const GanNhanVienSchema = z.object({ nhanVienId: idTuyChon });
 const AdminDatLaiMatKhauSchema = z.object({ matKhauMoi });
+const TrangThaiTaiKhoanSchema = z.object({
+  hoatDong: z.boolean({ required_error: 'Thiếu trạng thái', invalid_type_error: 'Trạng thái phải là true hoặc false' }),
+});
 
 module.exports = {
-  TuDangKySchema,
   TaoTaiKhoanSchema,
   DoiMatKhauSchema,
   DoiEmailSchema,
-  QuenMatKhauSchema,
   DatLaiMatKhauSchema,
   DoiVaiTroSchema,
   GanNhanVienSchema,
   AdminDatLaiMatKhauSchema,
+  TrangThaiTaiKhoanSchema,
 };

@@ -11,8 +11,9 @@
 - Nhật ký thay đổi (`src/services/nhatKy.js`) — sẵn sàng cho các Giai đoạn sau
 - Ghi log (Winston + Morgan)
 - Test tự động (Jest + Supertest) + CI (GitHub Actions, chỉ chạy test)
-- Giai đoạn 2: tự đăng ký, quên/đặt lại mật khẩu, đổi email/mật khẩu, quản trị
-  tài khoản và phân quyền theo vai trò
+- Giai đoạn 2.1: chỉ admin/HR cấp tài khoản; mật khẩu tạm buộc đổi lần đầu;
+  khóa tài khoản, gửi liên kết đặt lại mật khẩu và phân quyền theo vai trò
+- Ảnh đại diện đã bỏ; giao diện hiển thị chữ cái đầu, không cần Cloudinary
 - Module Tổ chức: phòng ban, chức vụ, chức danh, định biên và nhật ký thay đổi
 
 ## Các bước chạy thử (thực hiện trên máy bạn)
@@ -36,7 +37,7 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    docker compose --env-file backend/.env up -d sql-server
    ```
 
-2. **Tạo database, chạy schema và migration giai đoạn 2**:
+2. **Tạo database, chạy schema và migration giai đoạn 2.1**:
 
    ```sql
    CREATE DATABASE nhan_su;
@@ -51,6 +52,11 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    database. Migration bổ sung các cột, chỉ mục và stored procedure cần thiết;
    nếu database giai đoạn 1 đang dùng cột `TaiKhoan.MatKhau`, migration sẽ
    chuyển hash hiện có sang `MatKhauMaHoa` mà không đổi mật khẩu.
+
+   Cuối cùng chạy `backend/db/migrations/003_giai_doan_2_1.sql`. Migration này
+   thêm cờ buộc đổi mật khẩu và trạng thái khóa tài khoản, đồng thời gỡ cột
+   `NhanVien.AnhDaiDienUrl`. Không khởi động backend phiên bản 2.1 trước khi
+   chạy xong migration này.
 
    Nếu database đã được tạo theo schema cũ với `TenDangNhap NVARCHAR(100)`,
    mở rộng cột trước khi dùng email làm tên đăng nhập:
@@ -100,8 +106,9 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    - `POST http://localhost:3000/auth/login` body
      `{"tenDangNhap":"admin","matKhau":"admin"}` → phải trả về
      `accessToken` + `refreshToken`
-   - `POST http://localhost:3000/auth/tu-dang-ky` tạo tài khoản nhân viên
-     chưa gắn hồ sơ; admin/HR tạo tài khoản qua `POST /tai-khoan`
+   - Tự đăng ký và quên mật khẩu công khai đã bị gỡ; admin/HR tạo tài khoản
+     qua `POST /tai-khoan` với mật khẩu tạm
+   - Admin/HR có thể khóa tài khoản hoặc gửi liên kết đặt lại mật khẩu qua email
    - Mở trình duyệt `http://localhost:3000/auth/google` → phải chuyển hướng
      sang màn hình chọn tài khoản Google
 
@@ -109,6 +116,11 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    ```bash
    pnpm test
    ```
-   Các bài kiểm tra API cần SQL Server. Bài kiểm tra đăng nhập thành công chỉ
-   chạy khi cấu hình `HRMS_TEST_LOGIN_USERNAME` và `HRMS_TEST_LOGIN_PASSWORD`;
-   các bài kiểm tra validation không cần kết nối database.
+   Các bài kiểm tra luồng mật khẩu tạm và validation không cần kết nối DB.
+   Bài kiểm tra đăng nhập thành công chỉ chạy khi cấu hình
+   `HRMS_TEST_LOGIN_USERNAME` và `HRMS_TEST_LOGIN_PASSWORD`.
+
+Quản trị viên cuối cùng bị mất quyền truy cập có thể đặt lại tài khoản từ máy
+có quyền kết nối database bằng `node scripts/datLaiAdmin.js <tenDangNhap>
+<matKhauMoi>`. Tài khoản được mở khóa, các phiên cũ bị thu hồi và người dùng
+bị buộc đổi mật khẩu sau khi đăng nhập.

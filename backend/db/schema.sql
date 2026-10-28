@@ -117,7 +117,6 @@ CREATE TABLE NhanVien (
   Tinh NVARCHAR(100),
   QuanHuyen NVARCHAR(100),
   DiaChiChiTiet NVARCHAR(300),
-  AnhDaiDienUrl NVARCHAR(500),
   PhongBanId INT REFERENCES PhongBan(Id),
   ChucVuId INT REFERENCES ChucVu(Id),
   ChucDanhId INT REFERENCES ChucDanh(Id),
