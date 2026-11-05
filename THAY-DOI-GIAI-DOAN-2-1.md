@@ -73,8 +73,10 @@ Các màn hình Tổ chức, đăng nhập Google và callback OAuth hiện có 
 > **Sao lưu database trước khi chạy migration.** Migration 003 xóa cột
 > `NhanVien.AnhDaiDienUrl`; dữ liệu ảnh trong cột này không được giữ lại.
 
-1. Database mới: chạy `backend/db/schema.sql`, sau đó chạy migration 003 để
-   thêm các cột trạng thái tài khoản mà backend phiên bản này cần.
+1. Database mới: chạy `backend/db/schema.sql`, sau đó chạy lần lượt migration
+   002 và migration 003. Migration 002 bổ sung các cột, chỉ mục và stored
+   procedure của Giai đoạn 2; migration 003 bổ sung các cột trạng thái tài
+   khoản của Giai đoạn 2.1.
 2. Database đang ở Giai đoạn 1: chạy lần lượt migration 002 rồi migration 003.
    Database đã ở Giai đoạn 2: chỉ cần migration 003.
 3. Chỉ khởi động backend phiên bản này sau khi migration 003 thành công.

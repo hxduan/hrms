@@ -35,7 +35,7 @@ app.use('/dinh-bien', require('./routes/dinhBien'));
 app.use('/tai-khoan', require('./routes/taiKhoan'));
 app.use('/nhat-ky-thay-doi', require('./routes/nhatKy'));
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.set('X-HRMS-Service', 'hrms').json({ status: 'ok' }));
 
 if (fs.existsSync(path.join(frontendDist, 'index.html'))) {
   app.use(express.static(frontendDist));

@@ -73,8 +73,11 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    `${BACKEND_URL}/auth/google/callback`; mặc định local là
    `http://localhost:3000/auth/google/callback`. Khi triển khai ở domain khác,
    cập nhật `BACKEND_URL` và đăng ký đúng callback URL đó trong Google Cloud.
-   `FRONTEND_URL` mặc định là `http://localhost:5173`; nếu dùng địa chỉ khác,
-   hãy đặt biến này trong `backend/.env` đúng với địa chỉ frontend.
+   Khi chạy `pnpm start`, frontend đã build được phục vụ cùng backend nên
+   `FRONTEND_URL` mặc định theo `BACKEND_URL` (hoặc
+   `http://localhost:<PORT>`). Khi chạy `pnpm run dev`, mặc định là
+   `http://localhost:5173`. Nếu frontend được phục vụ ở địa chỉ khác, đặt
+   `FRONTEND_URL` trong `backend/.env` đúng với địa chỉ đó.
    `GMAIL_APP_PASSWORD` lấy từ myaccount.google.com/apppasswords.
 
 3. **Cài đặt & khởi tạo dữ liệu mẫu**:
