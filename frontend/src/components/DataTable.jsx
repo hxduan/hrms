@@ -31,6 +31,8 @@ export default function DataTable({
   onLichSu,
   hanhDongThem = [],
   khongCoDuLieu = 'Chưa có dữ liệu',
+  sapXepHienTai = null,
+  onSapXep = null,
 }) {
   const [daChon, setDaChon] = useState(() => new Set());
   const [menu, setMenu] = useState(null); // { x, y, dong }
@@ -156,8 +158,31 @@ export default function DataTable({
                 </th>
               )}
               {cotHienThi.map((c) => (
-                <th key={c.key} className={`${c.an === 'diDong' ? 'hr-an-di-dong' : ''} ${c.canPhai ? 'hr-so' : ''}`}>
-                  {c.nhan}
+                <th
+                  key={c.key}
+                  className={`${c.an === 'diDong' ? 'hr-an-di-dong' : ''} ${c.canPhai ? 'hr-so' : ''}`}
+                  aria-sort={
+                    c.sapXep && sapXepHienTai?.cot === c.sapXep
+                      ? sapXepHienTai.huong === 'DESC'
+                        ? 'descending'
+                        : 'ascending'
+                      : undefined
+                  }
+                >
+                  {c.sapXep && onSapXep ? (
+                    <button type="button" className="hr-sx" onClick={() => onSapXep(c.sapXep)}>
+                      {c.nhan}
+                      <span aria-hidden="true">
+                        {sapXepHienTai?.cot === c.sapXep
+                          ? sapXepHienTai.huong === 'DESC'
+                            ? ' ▼'
+                            : ' ▲'
+                          : ' ↕'}
+                      </span>
+                    </button>
+                  ) : (
+                    c.nhan
+                  )}
                 </th>
               ))}
               {coMenu && <th className="hr-cot-hanh-dong" aria-label="Thao tác" />}

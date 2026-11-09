@@ -6,6 +6,9 @@ const trong = (v) => v === '' || v === null || v === undefined || (typeof v === 
 
 /** Kiểm tra 1 ô ở phía trình duyệt. Trả về chuỗi lỗi hoặc null. Server vẫn kiểm tra lại. */
 function kiemTraTruong(f, giaTri, tatCa) {
+  if (f.type === 'an') return null;
+  if (f.type === 'checkbox') return f.kiemTra ? f.kiemTra(giaTri, tatCa) ?? null : null;
+  if (f.type === 'tuyChinh') return f.kiemTra ? f.kiemTra(giaTri, tatCa) ?? null : null;
   if (trong(giaTri)) return f.batBuoc ? `${f.nhan} là bắt buộc` : null;
   const chuoi = String(giaTri);
 
@@ -17,6 +20,9 @@ function kiemTraTruong(f, giaTri, tatCa) {
     if (f.max !== undefined && n > f.max) return `${f.nhan} tối đa là ${f.max}`;
   }
   if (f.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(chuoi.trim())) return 'Email không hợp lệ';
+  if (f.type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(chuoi)) return `${f.nhan} không hợp lệ`;
+  if (f.type === 'date' && f.min && chuoi < f.min) return `${f.nhan} không được trước ${f.min}`;
+  if (f.type === 'date' && f.max && chuoi > f.max) return `${f.nhan} không được sau ${f.max}`;
   if (f.doDaiToiThieu && chuoi.length < f.doDaiToiThieu) return `${f.nhan} tối thiểu ${f.doDaiToiThieu} ký tự`;
   if (f.mau && !f.mau.test(chuoi)) return f.thongBaoMau ?? `${f.nhan} không đúng định dạng`;
   return f.kiemTra ? f.kiemTra(giaTri, tatCa) ?? null : null;
@@ -61,19 +67,26 @@ export default function FormPanel({
   onHuy,
   khoiNop = false,
   phanPhu = null,
+  luoi = false, // true: chia 2 cột (ô có `rong: true` chiếm cả hàng)
+  onDoi = null, // gọi mỗi khi giá trị form đổi — để trang bên ngoài phản ứng (VD kiểm tra định biên)
 }) {
   const idGoc = useId();
   const [giaTri, setGiaTri] = useState(() =>
-    Object.fromEntries(cacTruong.map((f) => [f.key, giaTriBanDau[f.key] ?? '']))
+    Object.fromEntries(cacTruong.map((f) => [f.key, giaTriBanDau[f.key] ?? (f.type === 'checkbox' ? false : '')]))
   );
   const [loi, setLoi] = useState({});
   const [loiTrung, setLoiTrung] = useState({});
   const [dangKiemTra, setDangKiemTra] = useState({});
   const [dangLuu, setDangLuu] = useState(false);
   const [loiChung, setLoiChung] = useState('');
+  const [canhBaoKiemTra, setCanhBaoKiemTra] = useState('');
 
   const giaTriRef = useRef(giaTri);
   giaTriRef.current = giaTri;
+  useEffect(() => {
+    onDoi?.(giaTri);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [giaTri]);
   const conGan = useRef(true);
   useEffect(() => () => void (conGan.current = false), []);
 
@@ -96,9 +109,14 @@ export default function FormPanel({
     try {
       const msg = await f.kiemTraTrung(String(v).trim(), giaTriRef.current);
       // Bỏ kết quả nếu người dùng đã sửa tiếp trong lúc chờ
-      if (conGan.current && giaTriRef.current[f.key] === v) setLoiTrung((l) => ({ ...l, [f.key]: msg ?? null }));
+      if (conGan.current && giaTriRef.current[f.key] === v) {
+        setLoiTrung((l) => ({ ...l, [f.key]: msg ?? null }));
+        setCanhBaoKiemTra('');
+      }
     } catch {
-      /* Không chặn người dùng nếu API kiểm tra lỗi — server vẫn chặn khi lưu */
+      if (conGan.current) {
+        setCanhBaoKiemTra('Không kiểm tra được dữ liệu trùng lúc này. Hệ thống sẽ xác thực lại khi lưu.');
+      }
     } finally {
       if (conGan.current) setDangKiemTra((d) => ({ ...d, [f.key]: false }));
     }
@@ -126,6 +144,7 @@ export default function FormPanel({
     e.preventDefault();
     if (dangLuu) return;
     setLoiChung('');
+    setCanhBaoKiemTra('');
 
     const loiMoi = {};
     for (const f of cacTruong) {
@@ -149,9 +168,13 @@ export default function FormPanel({
   return (
     <form onSubmit={nop} noValidate>
       {loiChung && <ThongBao loai="loi">{loiChung}</ThongBao>}
+      {canhBaoKiemTra && <ThongBao loai="thongTin">{canhBaoKiemTra}</ThongBao>}
+      <div className={luoi ? 'hr-luoi-form' : undefined}>
       {cacTruong.map((f) => (
         <Truong
           key={f.key}
+          tatCa={giaTri}
+          datGiaTri={doi}
           id={idO(f.key)}
           truong={f}
           giaTri={giaTri[f.key]}
@@ -161,6 +184,7 @@ export default function FormPanel({
           onRoi={() => roiO(f)}
         />
       ))}
+      </div>
       {phanPhu}
       <div className="hr-modal-chan" style={khoiNop ? { display: 'block' } : undefined}>
         {onHuy && (

@@ -2,7 +2,7 @@ const sql = require('mssql');
 require('dotenv').config();
 
 const config = {
-  server: process.env.localhost || "localhost",
+  server: process.env.DB_SERVER || "localhost",
   port: Number(process.env.DB_PORT) || 1433,
   user: process.env.DB_USER || "sa",
   password: process.env.DB_PASSWORD || "12345",

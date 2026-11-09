@@ -34,6 +34,12 @@ app.use('/chuc-danh', require('./routes/chucDanh'));
 app.use('/dinh-bien', require('./routes/dinhBien'));
 app.use('/tai-khoan', require('./routes/taiKhoan'));
 app.use('/nhat-ky-thay-doi', require('./routes/nhatKy'));
+app.use('/nhan-vien', require('./routes/nhanVien'));
+app.use('/hop-dong', require('./routes/hopDong'));
+app.use('/dia-chi', require('./routes/diaChi'));
+const danhMucNhanSu = require('./routes/danhMucNhanSu');
+app.use('/danh-muc-nhan-su/loai-hop-dong', danhMucNhanSu.loaiHopDong);
+app.use('/danh-muc-nhan-su/ly-do-nghi-viec', danhMucNhanSu.lyDoNghiViec);
 
 app.get('/health', (req, res) => res.set('X-HRMS-Service', 'hrms').json({ status: 'ok' }));
 

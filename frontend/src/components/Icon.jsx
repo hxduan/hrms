@@ -26,6 +26,7 @@ const DUONG = {
   thu: 'M3 5h18v14H3zM3 7l9 6 9-6',
   khoa: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
   moKhoa: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 7.5-1.5',
+  donTu: 'M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7',
 };
 
 export default function Icon({ ten, kichCo = 18, ...props }) {

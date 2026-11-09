@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { tenHienThi, useAuth } from '../auth/AuthContext';
 import Icon from '../components/Icon';
 import { HuyHieu, ThongBao } from '../components/ui';
-import { layChuCaiDau, MENU, NHAN_VAI_TRO } from '../utils/vaiTro';
+import { layChuCaiDau, menuCuaVaiTro, NHAN_VAI_TRO } from '../utils/vaiTro';
 
 /** Khung chính sau khi đăng nhập: thanh bên (menu theo vai trò), thanh trên (người dùng), nội dung. */
 export default function AppLayout() {
@@ -15,7 +15,7 @@ export default function AppLayout() {
   const vungNguoiDung = useRef(null);
 
   const buocDoiMatKhau = !!nguoiDung.BatDoiMatKhau;
-  const menu = buocDoiMatKhau ? [] : MENU.filter((m) => m.vaiTro.includes(nguoiDung.VaiTro));
+  const menu = buocDoiMatKhau ? [] : menuCuaVaiTro(nguoiDung.VaiTro);
   const ten = tenHienThi(nguoiDung);
 
   // Chuyển trang thì đóng ngăn kéo (di động) và menu người dùng

@@ -5,6 +5,7 @@ const { getPool } = require('./src/db');
 const logger = require('./src/services/logger');
 const { damBaoTaiKhoanAdmin } = require('./src/services/adminSeed');
 const { kiemTraServerHRMS } = require('./src/services/serverRunning');
+const { batDauLichDongBo } = require('./src/services/lichDongBo');
 
 const port = Number(process.env.PORT) || 3000;
 
@@ -35,6 +36,7 @@ async function startServer() {
     await new Promise((resolve, reject) => {
       const server = app.listen(port, () => {
         logger.info(`Server đang chạy tại http://localhost:${port}`);
+        batDauLichDongBo();
         resolve();
       });
       server.once('error', reject);

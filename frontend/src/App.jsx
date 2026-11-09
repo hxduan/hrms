@@ -7,8 +7,13 @@ import DangNhap from './pages/DangNhap/DangNhap';
 import DatLaiMatKhau from './pages/DangNhap/DatLaiMatKhau';
 import OAuthCallback from './pages/DangNhap/OAuthCallback';
 import QuanTriLayout from './pages/QuanTri/QuanTriLayout';
+import DanhMuc from './pages/QuanTri/DanhMuc';
 import QuanTriTaiKhoan from './pages/QuanTri/TaiKhoan';
 import SapCo, { KhongTimThay } from './pages/SapCo';
+import ChiTietNhanVien from './pages/NhanSu/ChiTietNhanVien';
+import DanhSachNhanVien from './pages/NhanSu/DanhSachNhanVien';
+import FormNhanVien from './pages/NhanSu/FormNhanVien';
+import HoSoCuaToi from './pages/NhanSu/HoSoCuaToi';
 import TaiKhoanCuaToi from './pages/TaiKhoan/TaiKhoanCuaToi';
 import ChucDanh from './pages/ToChuc/ChucDanh';
 import ChucVu from './pages/ToChuc/ChucVu';
@@ -50,13 +55,17 @@ export default function App() {
                 <Route path="dinh-bien" element={<DinhBien />} />
               </Route>
 
-              <Route path="nhan-su/*" element={<RequireAuth vaiTro={QUAN_LY}><SapCo ten="Nhân sự" giaiDoan="3 và 4" /></RequireAuth>} />
-              <Route path="ho-so-cua-toi" element={<RequireAuth vaiTro={['nhan_vien']}><SapCo ten="Hồ sơ của tôi" giaiDoan="3 và 4" /></RequireAuth>} />
+              <Route path="nhan-su" element={<RequireAuth vaiTro={QUAN_LY}><DanhSachNhanVien /></RequireAuth>} />
+              <Route path="nhan-su/them" element={<RequireAuth vaiTro={QUAN_LY}><FormNhanVien /></RequireAuth>} />
+              <Route path="nhan-su/:id/sua" element={<RequireAuth vaiTro={QUAN_LY}><FormNhanVien /></RequireAuth>} />
+              <Route path="nhan-su/:id" element={<RequireAuth vaiTro={QUAN_LY}><ChiTietNhanVien /></RequireAuth>} />
+              <Route path="ho-so-cua-toi" element={<RequireAuth vaiTro={['nhan_vien']}><HoSoCuaToi /></RequireAuth>} />
               <Route path="cong-luong/*" element={<SapCo ten="Công - Lương" giaiDoan="5 đến 9" />} />
 
               <Route path="quan-tri" element={<RequireAuth vaiTro={QUAN_LY}><QuanTriLayout /></RequireAuth>}>
                 <Route index element={<Navigate to="tai-khoan" replace />} />
                 <Route path="tai-khoan" element={<QuanTriTaiKhoan />} />
+                <Route path="danh-muc" element={<DanhMuc />} />
               </Route>
 
               <Route path="tai-khoan-cua-toi" element={<TaiKhoanCuaToi />} />

@@ -2,7 +2,7 @@ const { ghiNhatKyThayDoi } = require('./nhatKy');
 
 // Tên bảng đi vào câu SQL => chỉ cho phép danh sách cố định này (không bao giờ
 // lấy từ request) để loại trừ SQL injection.
-const BANG_XOA_MEM = new Set(['PhongBan', 'ChucVu', 'ChucDanh']);
+const BANG_XOA_MEM = new Set(['PhongBan', 'ChucVu', 'ChucDanh', 'NhanVien']);
 
 async function xoaMem(pool, bang, id, nguoiThucHienId) {
   if (!BANG_XOA_MEM.has(bang)) throw new Error(`Bảng không hỗ trợ xóa mềm: ${bang}`);

@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "HRMS — Giai đoạn 1-2.1 (Xác thực, vòng đời tài khoản, Tổ chức)",
+    "name": "HRMS — Giai đoạn 1-4 (Xác thực, Tổ chức, Nhân sự)",
     "description": "Chạy bằng Collection Runner theo thứ tự thư mục. Cần: backend chạy ở baseUrl, đã chạy schema.sql, migration 002 + 003, seed.js và seedGiaiDoan2.js. Đặt biến emailGoc = email Gmail của bạn nếu muốn nhận thử email đặt lại mật khẩu (dùng dạng ten+nhan@gmail.com).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -2988,6 +2988,2152 @@
             },
             "auth": {
               "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 — Nhân sự: hồ sơ nhân viên (G3, cần migration 004)",
+      "item": [
+        {
+          "name": "Chuẩn bị: lấy 2 phòng ban",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const t = Date.now();",
+                  "pm.collectionVariables.set('ts', t);",
+                  "pm.collectionVariables.set('cccd1', '9' + String(t).slice(-11));",
+                  "pm.collectionVariables.set('cccd2', '8' + String(t).slice(-11));",
+                  "pm.collectionVariables.set('cccd3', '7' + String(t).slice(-11));",
+                  "pm.collectionVariables.set('mail1', 'nv1_' + t + '@example.com');",
+                  "pm.collectionVariables.set('mail2', 'nv2_' + t + '@example.com');",
+                  "pm.collectionVariables.set('mail3', 'nv3_' + t + '@example.com');",
+                  "const d = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);",
+                  "pm.collectionVariables.set('homQua', d(-1));",
+                  "pm.collectionVariables.set('ngayXa', d(10));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('có ít nhất 2 phòng ban', () => pm.expect(b.length).to.be.at.least(2));",
+                  "pm.collectionVariables.set('pbA', b[0].Id);",
+                  "pm.collectionVariables.set('pbB', b[1].Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/phong-ban"
+          }
+        },
+        {
+          "name": "Chuẩn bị: tạo chức danh riêng cho test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('cdMoi', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/chuc-danh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Ten\": \"CD test G3 {{ts}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Chuẩn bị: định biên 1 người cho (phòng ban A, chức danh mới)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/dinh-bien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"Nam\": \"{{nam}}\",\n  \"SoLuongDuocDuyet\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Kiểm tra định biên trước khi thêm: còn 1 chỗ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('còn chỗ', () => { pm.expect(b.duocPhep).to.eql(true); pm.expect(b.conLai).to.eql(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/kiem-tra-dinh-bien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phongBanId\": \"{{pbA}}\",\n  \"chucDanhId\": \"{{cdMoi}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Thêm nhân viên #1 → 201, mã tự sinh NVxxxx",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('mã dạng NV + số', () => pm.expect(b.MaNhanVien).to.match(/^NV\\d{4,}$/));",
+                  "pm.test('họ tên được cắt khoảng trắng', () => pm.expect(b.HoTen).to.eql('Nguyễn Văn Test'));",
+                  "pm.test('ngày trả về dạng chuỗi YYYY-MM-DD', () => pm.expect(b.NgayVaoLam).to.eql('2026-01-01'));",
+                  "pm.collectionVariables.set('nvId1', b.Id);",
+                  "pm.collectionVariables.set('maNv1', Number(b.MaNhanVien.slice(2)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"  Nguyễn Văn Test  \",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd1}}\",\n  \"Email\": \"{{mail1}}\",\n  \"VungLuong\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Thêm lại cùng CCCD → 409, nêu nhân viên đang dùng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('trường SoCCCD', () => pm.expect(b.truong).to.eql('SoCCCD'));",
+                  "pm.test('nêu mã nhân viên', () => pm.expect(b.message).to.match(/NV\\d+/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Người Trùng\",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd1}}\",\n  \"Email\": \"khac_{{mail2}}\",\n  \"VungLuong\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "CCCD 11 số → 400 đúng trường",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400', () => pm.response.to.have.status(400));",
+                  "const b = pm.response.json();",
+                  "pm.test('báo trường SoCCCD', () => pm.expect(b.loi.map(x => x.truong)).to.include('SoCCCD'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Sai CCCD\",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"12345678901\",\n  \"Email\": \"{{mail2}}\",\n  \"VungLuong\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Vị trí đã hết định biên (1/1) → 409 VUOT_DINH_BIEN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('maLoi', () => pm.expect(b.maLoi).to.eql('VUOT_DINH_BIEN'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Nhân Viên Thứ Hai\",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd2}}\",\n  \"Email\": \"{{mail2}}\",\n  \"VungLuong\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Xác nhận vượt nhưng THIẾU lý do → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400', () => pm.response.to.have.status(400));",
+                  "const b = pm.response.json();",
+                  "pm.test('đòi lý do', () => pm.expect(b.loi.map(x => x.truong)).to.include('lyDoVuotDinhBien'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Nhân Viên Thứ Hai\",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd2}}\",\n  \"Email\": \"{{mail2}}\",\n  \"VungLuong\": 1,\n  \"xacNhanVuotDinhBien\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Xác nhận vượt kèm lý do → 201; mã lớn hơn nhân viên #1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('mã tăng dần', () => pm.expect(Number(b.MaNhanVien.slice(2))).to.be.above(Number(pm.collectionVariables.get('maNv1'))));",
+                  "pm.collectionVariables.set('nvId2', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Nhân Viên Thứ Hai\",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd2}}\",\n  \"Email\": \"{{mail2}}\",\n  \"VungLuong\": 1,\n  \"xacNhanVuotDinhBien\": true,\n  \"lyDoVuotDinhBien\": \"Dự án gấp (test)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Nhật ký ghi lý do vượt định biên",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('có dòng vượt định biên kèm lý do', () => pm.expect(b.some(x => x.TenCot === '(vuot_dinh_bien)' && /Dự án gấp/.test(x.GiaTriMoi))).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhat-ky-thay-doi?tenBang=NhanVien&banGhiId={{nvId2}}"
+          }
+        },
+        {
+          "name": "Danh sách: tìm theo CCCD → có nhân viên #1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('có tongSo và dong', () => { pm.expect(b.tongSo).to.eql(1); pm.expect(b.dong[0].Id).to.eql(Number(pm.collectionVariables.get('nvId1'))); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien?tim={{cccd1}}&trangThai=dang_lam"
+          }
+        },
+        {
+          "name": "Danh sách: phân trang 1 dòng/trang",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('1 dòng, tổng nhiều hơn 1', () => { pm.expect(b.dong.length).to.eql(1); pm.expect(b.tongSo).to.be.above(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien?soDong=1&trang=1"
+          }
+        },
+        {
+          "name": "Danh sách: tham số sắp xếp độc hại bị bỏ qua (không lỗi 500)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien?sapXep=HoTen;DROP TABLE NhanVien--&huong=desc"
+          }
+        },
+        {
+          "name": "Sửa nhân viên #1 (đổi họ tên + gửi kèm PhongBanId khác → bị bỏ qua)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('đổi họ tên', () => pm.expect(b.HoTen).to.eql('Nguyễn Văn Đã Sửa'));",
+                  "pm.test('vị trí KHÔNG đổi', () => pm.expect(b.PhongBanId).to.eql(Number(pm.collectionVariables.get('pbA'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Nguyễn Văn Đã Sửa\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd1}}\",\n  \"Email\": \"{{mail1}}\",\n  \"VungLuong\": 1,\n  \"PhongBanId\": \"{{pbB}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Nhật ký ghi HoTen cũ → mới",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "const d = b.find(x => x.TenCot === 'HoTen');",
+                  "pm.test('có dòng HoTen', () => { pm.expect(d.GiaTriCu).to.eql('Nguyễn Văn Test'); pm.expect(d.GiaTriMoi).to.eql('Nguyễn Văn Đã Sửa'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhat-ky-thay-doi?tenBang=NhanVien&banGhiId={{nvId1}}"
+          }
+        },
+        {
+          "name": "Kiểm tra trùng (API cho form) → daTonTai",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('trùng', () => pm.expect(b.daTonTai).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/kiem-tra?truong=CCCD&giaTri={{cccd1}}"
+          }
+        },
+        {
+          "name": "Kiểm tra trùng khi sửa chính mình (boQuaId) → không trùng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('không trùng', () => pm.expect(b.daTonTai).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/kiem-tra?truong=CCCD&giaTri={{cccd1}}&boQuaId={{nvId1}}"
+          }
+        },
+        {
+          "name": "Địa chỉ: danh sách tỉnh → 200 (502 nếu máy chưa ra được internet / API đổi)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 hoặc 502 có hướng dẫn nhập tay', () => pm.expect([200, 502]).to.include(pm.response.code));",
+                  "const b = pm.response.json();",
+                  "if (pm.response.code === 200) pm.test('mỗi tỉnh có ma và ten', () => pm.expect(b[0]).to.have.keys(['ma', 'ten']));",
+                  "if (pm.response.code === 502) pm.test('có gợi ý nhập tay', () => pm.expect(b.message).to.match(/nhập tay/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/dia-chi/tinh"
+          }
+        },
+        {
+          "name": "NV: xem danh sách nhân viên → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NV: thêm nhân viên → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Trái phép\",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd3}}\",\n  \"Email\": \"{{mail3}}\",\n  \"VungLuong\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NV (nv01): xem hồ sơ của MÌNH → 200, đúng NV0001",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('NV0001', () => pm.expect(b.MaNhanVien).to.eql('NV0001'));",
+                  "pm.collectionVariables.set('nvIdCuaNv01', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/toi",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NV (nv01): xem hồ sơ NGƯỜI KHÁC theo id → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NV chưa gắn hồ sơ (nv02): /nhan-vien/toi → 403 CHUA_GAN_HO_SO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));",
+                  "const b = pm.response.json();",
+                  "pm.test('maLoi', () => pm.expect(b.maLoi).to.eql('CHUA_GAN_HO_SO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/toi",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv2}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "HR: thêm nhân viên #3 (vị trí khác, chưa có định biên) → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('nvId3', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Nhân Viên Thứ Ba\",\n  \"PhongBanId\": \"{{pbB}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd3}}\",\n  \"Email\": \"{{mail3}}\",\n  \"VungLuong\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenHr}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Xóa nhân viên #3 (chưa phát sinh dữ liệu) → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId3}}"
+          }
+        },
+        {
+          "name": "Tạo lại nhân viên với CÙNG CCCD sau khi xóa mềm → 201 (chỉ mục duy nhất có lọc)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('nvId3', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Nhân Viên Thứ Ba (tạo lại)\",\n  \"PhongBanId\": \"{{pbB}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"NgayVaoLam\": \"2026-01-01\",\n  \"SoCCCD\": \"{{cccd3}}\",\n  \"Email\": \"{{mail3}}\",\n  \"VungLuong\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 — Nhân sự: hợp đồng, công tác, phụ cấp, nghỉ việc (G4, cần migration 005)",
+      "item": [
+        {
+          "name": "Danh mục loại hợp đồng (có dữ liệu mẫu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('có ít nhất 4 loại và có cờ BH/thuế', () => { pm.expect(b.length).to.be.at.least(4); pm.expect(b[0]).to.have.property('CoDongBaoHiem'); pm.expect(b[0]).to.have.property('KieuTinhThue'); });",
+                  "pm.collectionVariables.set('lhdId', b[0].Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/danh-muc-nhan-su/loai-hop-dong"
+          }
+        },
+        {
+          "name": "Hợp đồng #1: 01/01/2026 → 31/12/2026 → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('ngày là chuỗi', () => pm.expect(b.NgayBatDau).to.eql('2026-01-01'));",
+                  "pm.collectionVariables.set('hdId1', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": \"{{lhdId}}\",\n  \"SoHopDong\": \"HD-{{ts}}-1\",\n  \"NgayBatDau\": \"2026-01-01\",\n  \"NgayKetThuc\": \"2026-12-31\",\n  \"LuongCoBan\": 15000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Hợp đồng chồng lấn thời gian → 409, nêu hợp đồng xung đột",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('báo trùng thời gian', () => pm.expect(b.message).to.match(/Trùng thời gian/));",
+                  "pm.test('gắn vào ô NgayBatDau', () => pm.expect(b.truong).to.eql('NgayBatDau'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": \"{{lhdId}}\",\n  \"NgayBatDau\": \"2026-06-01\",\n  \"NgayKetThuc\": \"2027-05-31\",\n  \"LuongCoBan\": 16000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Hợp đồng bắt đầu TRƯỚC ngày vào làm → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('nêu ngày vào làm', () => pm.expect(b.message).to.match(/ngày vào làm/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": \"{{lhdId}}\",\n  \"NgayBatDau\": \"2025-06-01\",\n  \"NgayKetThuc\": \"2025-12-31\",\n  \"LuongCoBan\": 10000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ngày kết thúc trước bắt đầu → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": \"{{lhdId}}\",\n  \"NgayBatDau\": \"2028-01-01\",\n  \"NgayKetThuc\": \"2027-01-01\",\n  \"LuongCoBan\": 10000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Hợp đồng #2 liền kề, không thời hạn → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.collectionVariables.set('hdId2', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": \"{{lhdId}}\",\n  \"SoHopDong\": \"HD-{{ts}}-2\",\n  \"NgayBatDau\": \"2027-01-01\",\n  \"LuongCoBan\": 18000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Số hợp đồng trùng → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('trường SoHopDong', () => pm.expect(b.truong).to.eql('SoHopDong'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": \"{{lhdId}}\",\n  \"SoHopDong\": \"HD-{{ts}}-1\",\n  \"NgayBatDau\": \"2026-02-01\",\n  \"LuongCoBan\": 10000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Sửa lương hợp đồng #1 → 200, nhật ký ghi lương cũ/mới",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong/{{hdId1}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": \"{{lhdId}}\",\n  \"SoHopDong\": \"HD-{{ts}}-1\",\n  \"NgayBatDau\": \"2026-01-01\",\n  \"NgayKetThuc\": \"2026-12-31\",\n  \"LuongCoBan\": 17000000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Nhật ký hợp đồng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "const d = b.find(x => x.TenCot === 'LuongCoBan');",
+                  "pm.test('15tr → 17tr', () => { pm.expect(Number(d.GiaTriCu)).to.eql(15000000); pm.expect(Number(d.GiaTriMoi)).to.eql(17000000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhat-ky-thay-doi?tenBang=HopDong&banGhiId={{hdId1}}"
+          }
+        },
+        {
+          "name": "Danh sách hợp đồng: mới nhất trước",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('2 hợp đồng, mới nhất đứng đầu', () => { pm.expect(b.length).to.eql(2); pm.expect(b[0].NgayBatDau).to.eql('2027-01-01'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong"
+          }
+        },
+        {
+          "name": "Hợp đồng sắp hết hạn (365 ngày) → 200 mảng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('là mảng', () => pm.expect(b).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/hop-dong/sap-het-han?soNgay=365"
+          }
+        },
+        {
+          "name": "Danh mục: thêm loại hợp đồng → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('giữ đúng cờ', () => { pm.expect(b.CoDongBaoHiem).to.eql(false); pm.expect(b.KieuTinhThue).to.eql('khau_tru_10'); });",
+                  "pm.collectionVariables.set('lhdMoi', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/danh-muc-nhan-su/loai-hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Ten\": \"LHD test {{ts}}\",\n  \"CoDongBaoHiem\": false,\n  \"KieuTinhThue\": \"khau_tru_10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Danh mục: tên trùng → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/danh-muc-nhan-su/loai-hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Ten\": \"LHD test {{ts}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Danh mục: xóa loại đang được dùng → 409 nêu số bản ghi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('nêu đang dùng', () => pm.expect(b.message).to.match(/đang được dùng/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/danh-muc-nhan-su/loai-hop-dong/{{lhdId}}"
+          }
+        },
+        {
+          "name": "Danh mục: xóa loại chưa dùng → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/danh-muc-nhan-su/loai-hop-dong/{{lhdMoi}}"
+          }
+        },
+        {
+          "name": "Quá trình: điều chuyển sang phòng ban B có hiệu lực HÔM QUA → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/qua-trinh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiBienDong\": \"dieu_chuyen\",\n  \"NgayHieuLuc\": \"{{homQua}}\",\n  \"PhongBanId\": \"{{pbB}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\",\n  \"SoQuyetDinh\": \"QD-{{ts}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Vị trí hiện tại của nhân viên đã chuyển sang phòng ban B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('PhongBanId = B', () => pm.expect(b.PhongBanId).to.eql(Number(pm.collectionVariables.get('pbB'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}"
+          }
+        },
+        {
+          "name": "Quá trình: điều chuyển HẸN 10 ngày sau về phòng ban A → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/qua-trinh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiBienDong\": \"dieu_chuyen\",\n  \"NgayHieuLuc\": \"{{ngayXa}}\",\n  \"PhongBanId\": \"{{pbA}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Điều chuyển hẹn tương lai: HÔM NAY vẫn ở phòng ban B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('vẫn ở B', () => pm.expect(b.PhongBanId).to.eql(Number(pm.collectionVariables.get('pbB'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}"
+          }
+        },
+        {
+          "name": "Danh sách quá trình: có bản ghi tiếp nhận + 2 điều chuyển",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('3 bản ghi', () => pm.expect(b.length).to.eql(3));",
+                  "pm.test('bản ghi cũ nhất là \"tiếp nhận\"', () => pm.expect(b[b.length - 1].LoaiBienDong).to.eql('khac'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/qua-trinh"
+          }
+        },
+        {
+          "name": "Phụ cấp ăn trưa 1.000.000, miễn thuế đến 730.000 → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('giữ mức miễn thuế', () => pm.expect(Number(b.MienThueToiDa)).to.eql(730000));",
+                  "pm.collectionVariables.set('pcId', b.Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/phu-cap",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TenPhuCap\": \"Ăn trưa\",\n  \"SoTien\": 1000000,\n  \"TinhBHXH\": false,\n  \"TinhThue\": true,\n  \"MienThueToiDa\": 730000,\n  \"NgayHieuLuc\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cùng phụ cấp chạy chồng thời gian → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/phu-cap",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TenPhuCap\": \"Ăn trưa\",\n  \"SoTien\": 500000,\n  \"NgayHieuLuc\": \"2026-06-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Phụ cấp số tiền âm → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/phu-cap",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"TenPhuCap\": \"Xăng xe\",\n  \"SoTien\": -1,\n  \"NgayHieuLuc\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Xóa phụ cấp (xóa mềm) → biến khỏi danh sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/phu-cap/{{pcId}}"
+          }
+        },
+        {
+          "name": "Danh sách phụ cấp rỗng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('rỗng', () => pm.expect(b.length).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/phu-cap"
+          }
+        },
+        {
+          "name": "Người phụ thuộc → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/nguoi-phu-thuoc",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Con Test\",\n  \"QuanHe\": \"Con\",\n  \"NgaySinh\": \"2020-05-01\",\n  \"NgayBatDauTinhGiamTru\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Người phụ thuộc: CCCD 8 số → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/nguoi-phu-thuoc",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Sai\",\n  \"SoCCCD\": \"12345678\",\n  \"NgayBatDauTinhGiamTru\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "NV (nv01): xem hợp đồng của MÌNH qua /toi → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('là mảng', () => pm.expect(b).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/toi/hop-dong",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NV (nv01): xem hợp đồng NGƯỜI KHÁC → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NV: thêm hợp đồng → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiBienDong\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "NV: ghi qua đường dẫn /toi → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/toi/hop-dong",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiHopDongId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenNv}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "HR: thêm người phụ thuộc → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}/nguoi-phu-thuoc",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"HoTen\": \"Vợ Test\",\n  \"QuanHe\": \"Vợ/Chồng\",\n  \"NgayBatDauTinhGiamTru\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenHr}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Lý do nghỉ việc (dữ liệu mẫu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('có dữ liệu', () => pm.expect(b.length).to.be.at.least(1));",
+                  "pm.collectionVariables.set('ldId', b[0].Id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/danh-muc-nhan-su/ly-do-nghi-viec"
+          }
+        },
+        {
+          "name": "Xóa nhân viên #1 (đã có hợp đồng) → 409, nêu lý do",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));",
+                  "const b = pm.response.json();",
+                  "pm.test('nêu hợp đồng', () => pm.expect(b.message).to.match(/hợp đồng/));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId1}}"
+          }
+        },
+        {
+          "name": "Cho nhân viên #2 nghỉ việc (hiệu lực hôm qua) → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201', () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test('có hiệu lực ngay', () => pm.expect(b.coHieuLucNgay).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}/nghi-viec",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LyDoNghiViecId\": \"{{ldId}}\",\n  \"NgayNghiViec\": \"{{homQua}}\",\n  \"KhoaTaiKhoan\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Nhân viên #2 đã chuyển sang \"đã nghỉ việc\"",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('DangLamViec = false', () => pm.expect(b.DangLamViec).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}"
+          }
+        },
+        {
+          "name": "Ghi nhận nghỉ việc lần 2 → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}/nghi-viec",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LyDoNghiViecId\": \"{{ldId}}\",\n  \"NgayNghiViec\": \"{{homQua}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Thêm biến động công tác cho người đã nghỉ → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}/qua-trinh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"LoaiBienDong\": \"dieu_chuyen\",\n  \"NgayHieuLuc\": \"{{homQua}}\",\n  \"PhongBanId\": \"{{pbB}}\",\n  \"ChucDanhId\": \"{{cdMoi}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "HR: hủy quyết định nghỉ việc → 403 (chỉ admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}/nghi-viec",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lyDo\": \"thử\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenHr}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Admin: hủy nghỉ việc THIẾU lý do → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}/nghi-viec",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Admin: hủy nghỉ việc kèm lý do → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}/nghi-viec",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lyDo\": \"Ghi nhầm (test)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Nhân viên #2 đi làm lại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('DangLamViec = true', () => pm.expect(b.DangLamViec).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/{{nvId2}}"
+          }
+        },
+        {
+          "name": "Đồng bộ thủ công (admin) → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/dong-bo"
+          }
+        },
+        {
+          "name": "HR không chạy được đồng bộ → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/nhan-vien/dong-bo",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenHr}}",
+                  "type": "string"
+                }
+              ]
             }
           }
         }

@@ -5,13 +5,23 @@ import api from '../api/client';
 
 const TEN_COT = {
   Ten: 'Tên', MaPhongBan: 'Mã', PhongBanChaId: 'Phòng ban cha', ThuTu: 'Thứ tự', PhongBanId: 'Phòng ban',
-  ChucDanhId: 'Chức danh', SoLuongDuocDuyet: 'Số lượng duyệt', GhiChu: 'Ghi chú', DaXoa: 'Trạng thái',
-  VaiTro: 'Vai trò', NhanVienId: 'Hồ sơ nhân viên', MatKhau: 'Mật khẩu',
+  ChucVuId: 'Chức vụ', ChucDanhId: 'Chức danh', SoLuongDuocDuyet: 'Số lượng duyệt', GhiChu: 'Ghi chú', DaXoa: 'Trạng thái',
+  VaiTro: 'Vai trò', NhanVienId: 'Hồ sơ nhân viên', MatKhau: 'Mật khẩu', HoatDong: 'Hoạt động',
+  HoTen: 'Họ tên', GioiTinh: 'Giới tính', NgaySinh: 'Ngày sinh', SoCCCD: 'Số CCCD', SoDienThoai: 'Số điện thoại', Email: 'Email',
+  Tinh: 'Tỉnh/Thành', PhuongXa: 'Phường/Xã', DiaChiChiTiet: 'Địa chỉ chi tiết', NgayVaoLam: 'Ngày vào làm', SoSoBHXH: 'Số sổ BHXH',
+  MaSoThue: 'Mã số thuế', VungLuong: 'Vùng lương', TenNganHang: 'Ngân hàng', SoTaiKhoanNganHang: 'Số tài khoản', DangLamViec: 'Đang làm việc',
+  '(vuot_dinh_bien)': 'Vượt định biên (lý do)', QuyetDinhNghiViec: 'Quyết định nghỉ việc',
+  LoaiHopDongId: 'Loại hợp đồng', SoHopDong: 'Số hợp đồng', NgayBatDau: 'Ngày bắt đầu', NgayKetThuc: 'Ngày kết thúc',
+  LuongCoBan: 'Lương cơ bản', LuongDongBHXH: 'Lương đóng BHXH', LoaiBienDong: 'Loại biến động', NgayHieuLuc: 'Ngày hiệu lực',
+  SoQuyetDinh: 'Số quyết định', TenPhuCap: 'Tên phụ cấp', SoTien: 'Số tiền', TinhBHXH: 'Tính BHXH', TinhThue: 'Tính thuế',
+  MienThueToiDa: 'Miễn thuế tối đa', QuanHe: 'Quan hệ', NgayBatDauTinhGiamTru: 'Bắt đầu giảm trừ', NgayKetThucTinhGiamTru: 'Kết thúc giảm trừ',
+  CoDongBaoHiem: 'Có đóng bảo hiểm', KieuTinhThue: 'Cách tính thuế',
 };
 
 function hienThiGiaTri(cot, v) {
   if (v === null || v === undefined || v === '') return <em style={{ color: 'var(--chu-mo)' }}>(trống)</em>;
   if (cot === 'DaXoa') return v === '1' ? 'Đã xóa' : 'Đang dùng';
+  if (v === 'true' || v === 'false') return v === 'true' ? 'Có' : 'Không';
   return v;
 }
 

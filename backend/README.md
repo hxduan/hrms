@@ -1,4 +1,4 @@
-# HRMS Backend — Giai đoạn 1 + 2
+# HRMS Backend — Giai đoạn 1 đến 4
 
 ## Đã tích hợp
 
@@ -15,6 +15,9 @@
   khóa tài khoản, gửi liên kết đặt lại mật khẩu và phân quyền theo vai trò
 - Ảnh đại diện đã bỏ; giao diện hiển thị chữ cái đầu, không cần Cloudinary
 - Module Tổ chức: phòng ban, chức vụ, chức danh, định biên và nhật ký thay đổi
+- Giai đoạn 3: danh sách, lọc, phân trang và hồ sơ nhân viên; kiểm tra định biên;
+  tra cứu địa chỉ tỉnh/phường xã
+- Giai đoạn 4: hợp đồng, quá trình công tác, phụ cấp, người phụ thuộc và nghỉ việc
 
 ## Các bước chạy thử (thực hiện trên máy bạn)
 
@@ -37,7 +40,7 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    docker compose --env-file backend/.env up -d sql-server
    ```
 
-2. **Tạo database, chạy schema và migration giai đoạn 2.1**:
+2. **Tạo database, chạy schema và migration theo thứ tự**:
 
    ```sql
    CREATE DATABASE nhan_su;
@@ -57,6 +60,12 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    thêm cờ buộc đổi mật khẩu và trạng thái khóa tài khoản, đồng thời gỡ cột
    `NhanVien.AnhDaiDienUrl`. Không khởi động backend phiên bản 2.1 trước khi
    chạy xong migration này.
+
+   Để bật Nhân sự, tiếp tục chạy `004_giai_doan_3.sql` rồi
+   `005_giai_doan_4.sql`. Migration 004 thêm các trường hồ sơ nhân viên,
+   đánh số nhân viên và thủ tục danh sách/chi tiết; migration 005 bổ sung dữ
+   liệu hợp đồng, quá trình công tác, phụ cấp, người phụ thuộc và nghỉ việc.
+   Không khởi động backend mới trước khi chạy đủ migration tương ứng.
 
    Nếu database đã được tạo theo schema cũ với `TenDangNhap NVARCHAR(100)`,
    mở rộng cột trước khi dùng email làm tên đăng nhập:
@@ -103,7 +112,7 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
 
    Khi phát triển, chạy `pnpm run dev` ở thư mục gốc; frontend chạy tại
    `http://localhost:5173`, backend API tại `http://localhost:3000`. CORS và
-   proxy Vite đã cấu hình cho các API của Giai đoạn 2.
+   proxy Vite đã cấu hình cho các API của Giai đoạn 2–4.
 
 4. **Kiểm tra bằng Postman**:
    - `GET http://localhost:3000/health` → phải trả `{"status":"ok"}`
@@ -113,6 +122,9 @@ Chạy các lệnh bên dưới từ thư mục gốc của repository.
    - Tự đăng ký và quên mật khẩu công khai đã bị gỡ; admin/HR tạo tài khoản
      qua `POST /tai-khoan` với mật khẩu tạm
    - Admin/HR có thể khóa tài khoản hoặc gửi liên kết đặt lại mật khẩu qua email
+   - Admin/HR quản lý hồ sơ tại `/nhan-su`; nhân viên chỉ xem hồ sơ của mình tại
+     `/ho-so-cua-toi`
+   - Danh mục loại hợp đồng và lý do nghỉ việc nằm tại Quản trị → Danh mục nhân sự
    - Mở trình duyệt `http://localhost:3000/auth/google` → phải chuyển hướng
      sang màn hình chọn tài khoản Google
 

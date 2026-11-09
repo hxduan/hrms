@@ -206,3 +206,31 @@
   .hr-xac-thuc-the { padding: 22px 18px; }
 }
 @media (prefers-reduced-motion: reduce) { .hr-app *, .hr-portal * { animation: none !important; transition: none !important; } }
+
+/* ===================== Nhân sự — Giai đoạn 3–4 ===================== */
+.hr-luoi-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; }
+.hr-truong-rong { grid-column: 1 / -1; }
+.hr-checkbox { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500; }
+.hr-checkbox input { width: 16px; height: 16px; }
+.hr-sx { background: none; border: none; padding: 0; margin: 0; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; font-weight: inherit; cursor: pointer; white-space: nowrap; }
+.hr-sx:hover { color: var(--chinh); }
+.hr-phan-trang { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 12px 4px 0; }
+.hr-phan-trang .hr-gian { flex: 1; }
+.hr-select-nho { width: auto; height: 30px; font-size: 13px; padding: 0 8px; }
+.hr-tab button { padding: 10px 14px; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--chu-phu); font-weight: 500; white-space: nowrap; cursor: pointer; }
+.hr-tab button:hover { color: var(--chu); }
+.hr-tab button.active { color: var(--chinh); border-bottom-color: var(--chinh); }
+.hr-ho-so-dau { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+.hr-avatar-lon { width: 56px; height: 56px; border-radius: 50%; background: var(--chinh-nhat); color: var(--chinh); display: grid; place-items: center; font-weight: 700; font-size: 22px; flex-shrink: 0; }
+.hr-ho-so-dau h1 { font-size: 22px; }
+.hr-ho-so-dau .hr-gian { flex: 1; }
+.hr-nhom-thong-tin { margin-bottom: 20px; }
+.hr-nhom-thong-tin h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--chu-phu); margin-bottom: 10px; }
+.hr-bo-loc { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.hr-bo-loc .hr-select { width: auto; min-width: 180px; }
+.hr-nhom-tieu-de { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--chu-phu); margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--vien); }
+.hr-luoi-form > .hr-truong-rong:first-child .hr-nhom-tieu-de { border-top: none; margin-top: 0; padding-top: 0; }
+@media (max-width: 640px) {
+  .hr-luoi-form { grid-template-columns: 1fr; }
+  .hr-ho-so-dau .hr-gian { display: none; }
+}
